@@ -25,7 +25,7 @@ func checkContains(
 
 // You can run `michel -h` or `michel --help` to get usage information.
 func TestHelp(t *testing.T) {
-	for _, flag := range []string{ "-h", "--help" } {
+	for _, flag := range []string{"-h", "--help"} {
 		result, err := michel.Run(flag)
 		if err != nil {
 			t.Fatal(err)
@@ -38,7 +38,7 @@ func TestHelp(t *testing.T) {
 // You can run `michel -version` or `michel --version` to get the current
 // version.
 func TestVersion(t *testing.T) {
-	for _, flag := range []string{ "--version", "-version" } {
+	for _, flag := range []string{"--version", "-version"} {
 		result, err := michel.Run(flag)
 		if err != nil {
 			t.Fatal(err)
@@ -66,7 +66,7 @@ func TestVersion(t *testing.T) {
 			t.Fatalf("version string \"%s\" has no build tag", version)
 		}
 
-		buildTag := parts[len(parts) - 1]
+		buildTag := parts[len(parts)-1]
 		if buildTag != "test" {
 			t.Fatalf("build tag should be \"test\", but is \"%s\"", buildTag)
 		}

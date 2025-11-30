@@ -59,5 +59,5 @@ func getVersionString() string {
 		return fmt.Sprintf("%s %s", Version, BuildTag)
 	}
 
-	return Version;
+	return Version
 }
