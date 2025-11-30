@@ -22,6 +22,13 @@ func main() {
 		fmt.Println()
 		fmt.Println("Top-level options:")
 		mainFlagSet.PrintDefaults()
+
+		fmt.Println()
+		fmt.Println("Subcommands:")
+		fmt.Println("  build")
+		fmt.Printf("\tBuilds site from content\n")
+		fmt.Println("  serve")
+		fmt.Printf("\tRuns local server for site\n")
 	}
 
 	mainFlagSet.Parse(os.Args[1:])
@@ -30,15 +37,26 @@ func main() {
 		fmt.Println(getVersionString())
 		return
 	}
+
+	subcommand := mainFlagSet.Arg(0)
+	if subcommand == "serve" {
+		fmt.Println("Run serve!")
+	} else if subcommand == "build" || subcommand == "" {
+		fmt.Println("Run build!")
+	} else {
+		fmt.Fprintf(os.Stderr, "Unrecognized subcommand: \"%s\"\n", subcommand)
+		mainFlagSet.Usage()
+		os.Exit(1)
+	}
 }
 
 func getVersionString() string {
-	if (Version == "") {
+	if Version == "" {
 		return "unknown"
 	}
 
-	if (BuildTag != "") {
-		return fmt.Sprintf("%s-%s", Version, BuildTag)
+	if BuildTag != "" {
+		return fmt.Sprintf("%s %s", Version, BuildTag)
 	}
 
 	return Version;
