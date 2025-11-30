@@ -3,7 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log/slog"
 	"os"
+
+	"github.com/sinclairtarget/michel/internal/server"
 )
 
 var Version string  // Semantic version
@@ -38,9 +41,12 @@ func main() {
 		return
 	}
 
+	logger := configureLogging(slog.LevelDebug)
+
 	subcommand := mainFlagSet.Arg(0)
 	if subcommand == "serve" {
-		fmt.Println("Run serve!")
+		err := server.Run(logger, "./public", 8080)
+		fmt.Fprintf(os.Stderr, "Server exited: %v", err)
 	} else if subcommand == "build" || subcommand == "" {
 		fmt.Println("Run build!")
 	} else {
@@ -60,4 +66,18 @@ func getVersionString() string {
 	}
 
 	return Version
+}
+
+func configureLogging(level slog.Level) *slog.Logger {
+	handler := slog.NewTextHandler(
+		os.Stderr,
+		&slog.HandlerOptions{
+			Level: level,
+		},
+	)
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
+
+	logger.Debug("logging configured", "configuredLevel", level)
+	return logger
 }
