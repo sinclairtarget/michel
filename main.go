@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/server"
 )
 
@@ -45,10 +46,9 @@ func main() {
 
 	subcommand := mainFlagSet.Arg(0)
 	if subcommand == "serve" {
-		err := server.Run(logger, "./public", 8080)
-		fmt.Fprintf(os.Stderr, "Server exited: %v", err)
+		runServer(logger)
 	} else if subcommand == "build" || subcommand == "" {
-		fmt.Println("Run build!")
+		runBuild(logger)
 	} else {
 		fmt.Fprintf(os.Stderr, "Unrecognized subcommand: \"%s\"\n", subcommand)
 		mainFlagSet.Usage()
@@ -80,4 +80,20 @@ func configureLogging(level slog.Level) *slog.Logger {
 
 	logger.Debug("logging configured", "configuredLevel", level)
 	return logger
+}
+
+func runServer(logger *slog.Logger) {
+	err := server.Run(logger, "./public", 8080)
+	fmt.Fprintf(os.Stderr, "Server exited: %v", err)
+}
+
+func runBuild(logger *slog.Logger) {
+	options := build.Options{
+		SiteDir:   "site",
+		TargetDir: "public",
+	}
+	err := build.Build(logger, options)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during build: %v", err)
+	}
 }

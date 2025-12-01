@@ -26,5 +26,8 @@ test-cli:
 [group("test")]
 test: test-cli
 
+fmt:
+    goimports -w $(git ls-files *.go **/*.go)
+
 clobber:
     rm -f michel
