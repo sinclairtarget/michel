@@ -31,7 +31,7 @@ func (s Site) Paths() (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
 		fsys := os.DirFS(s.baseDir)
-		matches, err := fs.Glob(fsys, "*.html")
+		matches, err := fs.Glob(fsys, "*")
 		if err != nil {
 			iterErr = err
 			return
