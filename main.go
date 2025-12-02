@@ -17,9 +17,10 @@ func main() {
 	mainFlagSet := flag.NewFlagSet("michel", flag.ExitOnError)
 
 	versionFlag := mainFlagSet.Bool("version", false, "Print version and exit")
+	verboseFlag := mainFlagSet.Bool("v", false, "Enable verbose logging")
 
 	mainFlagSet.Usage = func() {
-		fmt.Println("Usage: michel [subcommand] [subcommand options...]")
+		fmt.Println("Usage: michel [-v] SUBCOMMAND [subcommand options...]")
 		fmt.Println("       michel --version")
 		fmt.Println("michel builds websites from MyST markdown")
 
@@ -42,7 +43,12 @@ func main() {
 		return
 	}
 
-	logger := configureLogging(slog.LevelDebug)
+	var logger *slog.Logger
+	if *verboseFlag {
+		logger = configureLogging(slog.LevelDebug)
+	} else {
+		logger = configureLogging(slog.LevelInfo)
+	}
 
 	subcommand := mainFlagSet.Arg(0)
 	if subcommand == "serve" {
