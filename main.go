@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/server"
@@ -95,10 +96,15 @@ func runServer(logger *slog.Logger) {
 			SiteDir:   "site",
 			TargetDir: "public",
 		}
+
+		start := time.Now()
 		err := build.Build(logger, options)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error during build: %v", err)
 		}
+
+		elapsed := time.Now().Sub(start)
+		fmt.Printf("Site rebuilt in %dms.\n", elapsed.Milliseconds())
 	}
 	serverBuild() // Make sure `public` is up-to-date
 
