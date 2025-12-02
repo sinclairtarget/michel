@@ -8,6 +8,7 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/server"
+	"github.com/sinclairtarget/michel/internal/watch"
 )
 
 var Version string  // Semantic version
@@ -89,17 +90,49 @@ func configureLogging(level slog.Level) *slog.Logger {
 }
 
 func runServer(logger *slog.Logger) {
-	err := server.Run(logger, "./public", 8080)
+	serverBuild := func() {
+		options := build.Options{
+			SiteDir:   "site",
+			TargetDir: "public",
+		}
+		err := build.Build(logger, options)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error during build: %v", err)
+		}
+	}
+	serverBuild() // Make sure `public` is up-to-date
+
+	watcher := watch.NewWatcher("site")
+	defer watcher.Close()
+
+	go func() {
+		for event := range watcher.Events {
+			logger.Debug("got file modified event", "path", event.Path)
+			serverBuild()
+		}
+
+		logger.Debug("goroutine exiting; watch events channel closed")
+	}()
+
+	err := watcher.Start(logger)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not start file watcher: %v", err)
+		os.Exit(1)
+	}
+
+	err = server.Run(logger, "./public", 8080)
 	fmt.Fprintf(os.Stderr, "Server exited: %v", err)
 }
 
 func runBuild(logger *slog.Logger) {
 	options := build.Options{
-		SiteDir:   "site",
-		TargetDir: "public",
+		SiteDir:     "site",
+		TargetDir:   "public",
+		ShouldClean: true,
 	}
 	err := build.Build(logger, options)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build: %v", err)
+		os.Exit(1)
 	}
 }

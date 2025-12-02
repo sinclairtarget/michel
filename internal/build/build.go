@@ -11,15 +11,18 @@ import (
 )
 
 type Options struct {
-	SiteDir   string
-	TargetDir string
+	SiteDir     string
+	TargetDir   string
+	ShouldClean bool
 }
 
 func Build(logger *slog.Logger, options Options) error {
-	logger.Debug("cleaning target directory")
-	err := clean(options.TargetDir)
-	if err != nil {
-		return fmt.Errorf("failed to clean target directory: %v", err)
+	if options.ShouldClean {
+		logger.Debug("cleaning target directory")
+		err := clean(options.TargetDir)
+		if err != nil {
+			return fmt.Errorf("failed to clean target directory: %v", err)
+		}
 	}
 
 	logger.Debug("loading site")
@@ -39,7 +42,7 @@ func Build(logger *slog.Logger, options Options) error {
 		}
 	}
 
-	err = finish()
+	err := finish()
 	if err != nil {
 		return err
 	}

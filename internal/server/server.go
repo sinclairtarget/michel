@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// bim
 func logMiddleware(logger *slog.Logger, f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Info("GET", "url", r.URL)
