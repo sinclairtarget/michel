@@ -6,13 +6,6 @@ import (
 	"net/http"
 )
 
-func logMiddleware(logger *slog.Logger, f http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		logger.Info("GET", "url", r.URL)
-		f(w, r)
-	}
-}
-
 func Run(logger *slog.Logger, basePath string, port int) error {
 	fmt.Printf("Starting server on port %d...\n", port)
 
@@ -21,4 +14,16 @@ func Run(logger *slog.Logger, basePath string, port int) error {
 		addr,
 		logMiddleware(logger, http.FileServer(http.Dir(basePath)).ServeHTTP),
 	)
+}
+
+func logMiddleware(logger *slog.Logger, f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logRequest(logger, r)
+		f(w, r)
+	}
+}
+
+func logRequest(logger *slog.Logger, r *http.Request) {
+	fmt.Printf("%s %s\n", r.Method, r.URL)
+	logger.Debug("http request", "method", r.Method, "url", r.URL)
 }
