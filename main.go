@@ -100,7 +100,7 @@ func runServer(logger *slog.Logger) {
 		start := time.Now()
 		err := build.Build(logger, options)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error during build: %v", err)
+			fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		}
 
 		elapsed := time.Now().Sub(start)
@@ -138,7 +138,7 @@ func runBuild(logger *slog.Logger) {
 	}
 	err := build.Build(logger, options)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error during build: %v", err)
+		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
 	}
 }

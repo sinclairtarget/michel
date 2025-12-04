@@ -10,6 +10,7 @@ _build build_tag:
 # Run unit tests
 [group("test")]
 test-unit:
+    -go test ./internal/...
 
 # Run functional tests for CLI
 [group("test")]
@@ -24,7 +25,7 @@ test-cli:
 
 # Run all tests
 [group("test")]
-test: test-cli
+test: test-unit test-cli
 
 fmt:
     goimports -w $(git ls-files *.go **/*.go)

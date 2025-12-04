@@ -8,29 +8,29 @@ import (
 )
 
 type Config struct {
-	name string
+	Name string
 }
 
 type Site struct {
-	baseDir string
-	config  Config
+	BaseDir string
+	Config  Config
 }
 
 func Load(dir string) Site {
 	config := Config{
-		name: "my site",
+		Name: "my site",
 	}
 
 	return Site{
-		baseDir: dir,
-		config:  config,
+		BaseDir: dir,
+		Config:  config,
 	}
 }
 
 func (s Site) Paths() (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
-		fsys := os.DirFS(s.baseDir)
+		fsys := os.DirFS(s.BaseDir)
 		matches, err := fs.Glob(fsys, "*")
 		if err != nil {
 			iterErr = err
@@ -38,7 +38,7 @@ func (s Site) Paths() (iter.Seq[string], func() error) {
 		}
 
 		for _, path := range matches {
-			finalPath := filepath.Join(s.baseDir, path)
+			finalPath := filepath.Join(s.BaseDir, path)
 			if !yield(finalPath) {
 				return
 			}

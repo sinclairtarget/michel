@@ -7,7 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	sitePkg "github.com/sinclairtarget/michel/internal/site"
+	"github.com/sinclairtarget/michel/internal/content"
+	"github.com/sinclairtarget/michel/internal/site"
 )
 
 type Options struct {
@@ -16,6 +17,17 @@ type Options struct {
 	ShouldClean bool
 }
 
+// Build the static website.
+//
+//  1. Clean target dir.
+//  2. Load site configuration.
+//  3. Load content.
+//  4. Load partials, prefixed with "partials/"
+//  5. For each site path:
+//     a. Read YAML frontmatter
+//     b. Load layouts (if any), prefixed with partials/
+//     c. Load template
+//     d. ExecuteTemplate() with first layout
 func Build(logger *slog.Logger, options Options) error {
 	if options.ShouldClean {
 		logger.Debug("cleaning target directory")
@@ -26,26 +38,75 @@ func Build(logger *slog.Logger, options Options) error {
 	}
 
 	logger.Debug("loading site")
-	site := sitePkg.Load(options.SiteDir)
+	siteMetadata := site.Load(options.SiteDir)
 
-	logger.Debug("processing site pages")
-	seq, finish := site.Paths()
-	for sitePath := range seq {
-		targetPath, err := target(options.SiteDir, options.TargetDir, sitePath)
-		if err != nil {
-			return fmt.Errorf("could not map path: %v", err)
-		}
-
-		err = process(sitePath, targetPath)
-		if err != nil {
-			return fmt.Errorf("failed to process \"%s\": %v", sitePath, err)
-		}
-	}
-
-	err := finish()
+	logger.Debug("loading partials templates")
+	tmpl, err := loadPartials("partials")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load partials templates: %w", err)
 	}
+
+	page, err := site.LoadPage("site/two-houses-in-cambridgeport.html.tmpl")
+	if err != nil {
+		return fmt.Errorf("failed to load site page: %w", err)
+	}
+
+	executedTmplName := "two-houses-in-cambridgeport.html.tmpl"
+	if len(page.Frontmatter.Layouts) > 0 {
+		tmpl, err = tmpl.ParseFiles(page.Frontmatter.Layouts...)
+		if err != nil {
+			return fmt.Errorf("failed to parse layout template: %w", err)
+		}
+
+		executedTmplName = filepath.Base(page.Frontmatter.Layouts[0])
+	}
+
+	tmpl, err = tmpl.New("two-houses-in-cambridgeport.html.tmpl").Parse(page.TemplateText)
+	if err != nil {
+		return fmt.Errorf("failed to parse article template: %w", err)
+	}
+
+	logger.Debug("defined templates", "templates", tmpl.DefinedTemplates())
+
+	f, err := os.Create("public/two-houses-in-cambridgeport.html")
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer f.Close()
+
+	data := struct {
+		SiteName string
+		Content  content.Content
+	}{
+		SiteName: siteMetadata.Config.Name,
+		Content: content.Content{
+			Title:    "Two Houses I Like In Cambridgeport",
+			BodyText: "This is my article about houses in Cambridgeport",
+		},
+	}
+	err = tmpl.ExecuteTemplate(f, executedTmplName, data)
+	if err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	// 	logger.Debug("processing site pages")
+	// 	seq, finish := site.Paths()
+	// 	for sitePath := range seq {
+	// 		targetPath, err := target(options.SiteDir, options.TargetDir, sitePath)
+	// 		if err != nil {
+	// 			return fmt.Errorf("could not map path: %v", err)
+	// 		}
+	//
+	// 		err = process(sitePath, targetPath)
+	// 		if err != nil {
+	// 			return fmt.Errorf("failed to process \"%s\": %v", sitePath, err)
+	// 		}
+	// 	}
+	//
+	// 	err := finish()
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
 	return nil
 }
