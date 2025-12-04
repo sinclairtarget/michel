@@ -8,8 +8,8 @@ Michel prefers guts-visible explicitness to "convention over configuration."
 ## Model
 Michel builds a site by reading input files from these directories:
 
-`content`
-: Your website content / prose, written using MyST Markdown.
+`content`: Your website content / prose, written using MyST Markdown. or plain
+text.
 
 `site`
 : Your website HTML pages (templated using Go templating) and assets.
@@ -18,12 +18,12 @@ Michel builds a site by reading input files from these directories:
 : Your templated layouts that can be shared among multiple pages.
 
 `partials`
-: Your templated components that can be shared among multiple pages.
+: Your templated sub-components that can be shared among multiple pages.
 
 After processing, all output gets written to the target directory named
 `public`.
 
-Michel never automatically creates any pages for you. Every page in your
-website must exist as a page under `/site`. No content defined under
-`/content` appears in your website unless it is explicitly used by a page
-under `/site`.
+Michel never infers the existence of any page based on your content. Every 
+page in your website must exist as a page under `site`. No content defined 
+under `content` will appear in your website unless it is explicitly used 
+by a page under `site`.
