@@ -3,7 +3,7 @@
 
 Michel is a minimal static site builder based on [MyST Markdown](https://mystmd.org/).
 
-Michel favors brutal explicitness to "convention over configuration."
+Michel favors guts-visible explicitness to "convention over configuration."
 
 ## Model
 `content` directory. Files with YAML frontmatter, MyST markdown body.
