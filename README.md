@@ -22,3 +22,8 @@ Michel builds a site by reading input files from these directories:
 
 After processing, all output gets written to the target directory named
 `public`.
+
+Michel never automatically creates any pages for you. Every page in your
+website must exist as a page under `/site`. No content defined under
+`/content` appears in your website unless it is explicitly used by a page
+under `/site`.
