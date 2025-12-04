@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Loads all partials templates. Namespaces them with a "partials/" prefix.
@@ -44,5 +45,39 @@ func loadPartials(dir string) (*template.Template, error) {
 }
 
 func partialNameFromFilename(filename string) string {
-	return "partials/article"
+	parts := strings.Split(filepath.Base(filename), ".")
+	return "partials/" + parts[0]
+}
+
+func loadLayouts(
+	partialsTmpl *template.Template,
+	paths []string,
+) (*template.Template, error) {
+	tmpl := partialsTmpl
+	for _, path := range paths {
+		name := layoutNameFromFilename(path)
+		if tmpl != nil {
+			tmpl = tmpl.New(name)
+		} else {
+			tmpl = template.New(name)
+		}
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		s := string(b)
+		_, err = tmpl.Parse(s)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tmpl, nil
+}
+
+func layoutNameFromFilename(filename string) string {
+	parts := strings.Split(filepath.Base(filename), ".")
+	return "layouts/" + parts[0]
 }

@@ -132,9 +132,8 @@ func runServer(logger *slog.Logger) {
 
 func runBuild(logger *slog.Logger) {
 	options := build.Options{
-		SiteDir:     "site",
-		TargetDir:   "public",
-		ShouldClean: true,
+		SiteDir:   "site",
+		TargetDir: "public",
 	}
 	err := build.Build(logger, options)
 	if err != nil {
