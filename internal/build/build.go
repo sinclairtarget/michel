@@ -61,8 +61,11 @@ func Build(logger *slog.Logger, options Options) error {
 	}{
 		SiteName: siteMetadata.Config.Name,
 		Content: content.Content{
-			Title:    "Two Houses I Like In Cambridgeport",
-			BodyText: "This is my article about houses in Cambridgeport",
+			Path: "content/two-houses-in-cambridgeport.txt",
+			Frontmatter: content.Frontmatter{
+				Title: "Two Houses in Cambridgeport",
+			},
+			Html: "<p>Foo bar</p>",
 		},
 	}
 
