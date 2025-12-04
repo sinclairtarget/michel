@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,10 @@ type Content struct {
 	Name        string
 	Frontmatter Frontmatter
 	Html        string
+}
+
+func (c Content) Body() template.HTML {
+	return template.HTML(c.Html)
 }
 
 func IsPlaintext(path string) bool {

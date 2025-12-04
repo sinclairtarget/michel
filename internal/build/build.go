@@ -24,6 +24,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/content"
@@ -55,18 +56,13 @@ func Build(logger *slog.Logger, options Options) error {
 	}
 
 	logger.Debug("loading content")
+	contentMap, err := loadContent("content")
 	data := struct {
-		SiteName string
-		Content  content.Content
+		Site    site.Site
+		Content map[string]content.Content
 	}{
-		SiteName: siteMetadata.Config.Name,
-		Content: content.Content{
-			Path: "content/two-houses-in-cambridgeport.txt",
-			Frontmatter: content.Frontmatter{
-				Title: "Two Houses in Cambridgeport",
-			},
-			Html: "<p>Foo bar</p>",
-		},
+		Site:    siteMetadata,
+		Content: contentMap,
 	}
 
 	logger.Debug("processing site pages and assets")
@@ -129,6 +125,11 @@ func target(siteDir string, targetDir string, path string) (string, error) {
 	relative, err := filepath.Rel(siteDir, path)
 	if err != nil {
 		return "", err
+	}
+
+	// TODO: Handle general case of extensions like this
+	if strings.HasSuffix(relative, ".html.tmpl") {
+		relative = strings.TrimSuffix(relative, ".html.tmpl") + ".html"
 	}
 
 	return filepath.Join(targetDir, relative), nil
