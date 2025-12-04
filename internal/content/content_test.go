@@ -38,6 +38,15 @@ a paragraph break.
 		)
 	}
 
+	expectedName := "test-content"
+	if content.Name != expectedName {
+		t.Errorf(
+			"content name incorrect; wanted %s, got %s",
+			expectedName,
+			content.Name,
+		)
+	}
+
 	expectedTitle := "My Blog Post"
 	if content.Frontmatter.Title != expectedTitle {
 		t.Errorf(

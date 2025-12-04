@@ -15,6 +15,7 @@ type Frontmatter struct {
 
 type Content struct {
 	Path        string
+	Name        string
 	Frontmatter Frontmatter
 	Html        string
 }
@@ -38,6 +39,8 @@ func LoadFromPlainText(path string) (Content, error) {
 		return content, err
 	}
 
+	content.Name = getContentName(path)
+
 	f, err := os.Open(content.Path)
 	if err != nil {
 		return content, err
@@ -60,4 +63,9 @@ func LoadFromPlainText(path string) (Content, error) {
 	}
 
 	return content, nil
+}
+
+func getContentName(path string) string {
+	parts := strings.Split(filepath.Base(path), ".")
+	return parts[0]
 }
