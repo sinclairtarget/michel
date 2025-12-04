@@ -27,7 +27,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/site"
 )
 
@@ -56,13 +55,13 @@ func Build(logger *slog.Logger, options Options) error {
 	}
 
 	logger.Debug("loading content")
-	contentMap, err := loadContent("content")
+	contentLibrary, err := loadContent("content")
 	data := struct {
 		Site    site.Site
-		Content map[string]content.Content
+		Content ContentLibrary
 	}{
 		Site:    siteMetadata,
-		Content: contentMap,
+		Content: contentLibrary,
 	}
 
 	logger.Debug("processing site pages and assets")
