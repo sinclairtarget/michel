@@ -1,6 +1,5 @@
 # Michel
-<img width="768" height="512" alt="michel" src="https://github.com/user-attachments/assets/9439d100-d93c-4436-8a03-d94da2995e8d" />
-
+![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
 Michel is a minimal static site builder based on [MyST Markdown](https://mystmd.org/).
 
