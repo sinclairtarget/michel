@@ -6,7 +6,19 @@ Michel is a minimal static site builder based on [MyST Markdown](https://mystmd.
 Michel favors guts-visible explicitness to "convention over configuration."
 
 ## Model
-`content` directory. Files with YAML frontmatter, MyST markdown body.
+Michel builds a site by reading input files from these directories:
 
-`site` directory. Templated HTML pages. Every page in the website corresponds
-to a templated HTML page. No auto-generation or magic.
+`content`
+: Your website content / prose, written using MyST Markdown.
+
+`site`
+: Your website HTML pages (templated using Go templating) and assets.
+
+`layouts`
+: Your templated layouts that can be shared among multiple pages.
+
+`partials`
+: Your templated components that can be shared among multiple pages.
+
+After processing, all output gets written to the target directory named
+`public`.
