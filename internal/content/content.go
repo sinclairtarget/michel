@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
+	"github.com/sinclairtarget/michel/internal/util/fileext"
 )
 
 type Frontmatter struct {
@@ -44,7 +45,7 @@ func LoadFromPlainText(path string) (Content, error) {
 		return content, err
 	}
 
-	content.Name = getContentName(path)
+	content.Name = contentNameFromPath(path)
 
 	f, err := os.Open(content.Path)
 	if err != nil {
@@ -70,7 +71,6 @@ func LoadFromPlainText(path string) (Content, error) {
 	return content, nil
 }
 
-func getContentName(path string) string {
-	parts := strings.Split(filepath.Base(path), ".")
-	return parts[0]
+func contentNameFromPath(path string) string {
+	return fileext.BaseWithoutExt(path)
 }

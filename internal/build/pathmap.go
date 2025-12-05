@@ -3,7 +3,7 @@ package build
 import (
 	"path/filepath"
 
-	"github.com/sinclairtarget/michel/internal/util/fileext"
+	"github.com/sinclairtarget/michel/internal/site"
 )
 
 func mapPagePath(
@@ -17,8 +17,7 @@ func mapPagePath(
 	}
 
 	dirPart := filepath.Dir(relative)
-	pageName := fileext.BaseWithoutExt(path)
-	filename := pageName + ".html"
+	filename := site.PageNameFromPath(path) + ".html"
 	return filepath.Join(targetDir, dirPart, filename), nil
 }
 

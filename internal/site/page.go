@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
+	"github.com/sinclairtarget/michel/internal/util/fileext"
 )
 
 type PageFrontmatter struct {
@@ -25,6 +26,7 @@ func (pm PageFrontmatter) LayoutsFullName() []string {
 
 type Page struct {
 	Path         string
+	Name         string
 	Frontmatter  PageFrontmatter
 	TemplateText string
 }
@@ -60,6 +62,8 @@ func LoadPage(path string) (Page, error) {
 	}
 	defer f.Close()
 
+	page.Name = PageNameFromPath(page.Path)
+
 	result, err := frontmatter.ReadFile[PageFrontmatter](f)
 	if err != nil {
 		return page, err
@@ -68,4 +72,8 @@ func LoadPage(path string) (Page, error) {
 	page.Frontmatter = result.Frontmatter
 	page.TemplateText = result.Text
 	return page, nil
+}
+
+func PageNameFromPath(path string) string {
+	return fileext.BaseWithoutExt(path)
 }
