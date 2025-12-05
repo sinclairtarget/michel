@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/site"
 )
 
@@ -55,10 +56,10 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("loading content")
-	contentLibrary, err := loadContent(contentDir)
+	contentLibrary, err := content.LoadContent(contentDir)
 	data := struct {
 		Site    site.Site
-		Content ContentLibrary
+		Content content.ContentLibrary
 	}{
 		Site:    siteMetadata,
 		Content: contentLibrary,

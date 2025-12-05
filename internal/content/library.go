@@ -1,24 +1,22 @@
-package build
+package content
 
 import (
 	"path/filepath"
-
-	"github.com/sinclairtarget/michel/internal/content"
 )
 
 type ContentLibrary struct {
-	m map[string]content.Content
+	m map[string]Content
 }
 
-func (lib ContentLibrary) Get(name string) content.Content {
+func (lib ContentLibrary) Get(name string) Content {
 	return lib.m[name]
 }
 
-func loadContent(dir string) (ContentLibrary, error) {
+func LoadContent(dir string) (ContentLibrary, error) {
 	var library ContentLibrary
 
 	// Load plain text content
-	contentMap := map[string]content.Content{}
+	contentMap := map[string]Content{}
 
 	pattern := filepath.Join(dir, "*.txt")
 	matches, err := filepath.Glob(pattern)
@@ -27,7 +25,7 @@ func loadContent(dir string) (ContentLibrary, error) {
 	}
 
 	for _, match := range matches {
-		c, err := content.LoadFromPlainText(match)
+		c, err := LoadFromPlainText(match)
 		if err != nil {
 			return library, err
 		}
