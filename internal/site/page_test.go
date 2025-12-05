@@ -35,6 +35,10 @@ layouts:
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
+	if !site.IsPage(filename) {
+		t.Fatalf("path \"%s\" should count as page path but did not", filename)
+	}
+
 	page, err := site.LoadPage(filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
@@ -48,12 +52,12 @@ layouts:
 		)
 	}
 
-	expected := []string{"base", "article"}
-	if !slices.Equal(page.Frontmatter.Layouts, expected) {
+	expected := []string{"layouts/base", "layouts/article"}
+	if !slices.Equal(page.Frontmatter.LayoutsFullName(), expected) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
 			expected,
-			page.Frontmatter.Layouts,
+			page.Frontmatter.LayoutsFullName(),
 		)
 	}
 
@@ -96,7 +100,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		)
 	}
 
-	if len(page.Frontmatter.Layouts) > 0 {
+	if len(page.Frontmatter.LayoutsFullName()) > 0 {
 		t.Error("page frontmatter layouts non-empty; wanted empty slice")
 	}
 

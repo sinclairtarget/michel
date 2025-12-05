@@ -24,38 +24,38 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/site"
 )
 
-type Options struct {
-	SiteDir   string
-	TargetDir string
-}
+var siteDir string = "site"
+var targetDir string = "public"
+var contentDir string = "content"
+var layoutsDir string = "layouts"
+var partialsDir string = "partials"
 
-func Build(logger *slog.Logger, options Options) error {
+func Build(logger *slog.Logger) error {
 	start := time.Now()
 	logger.Debug("beginning build")
 
 	logger.Debug("cleaning target directory")
-	err := clean(options.TargetDir)
+	err := clean(targetDir)
 	if err != nil {
 		return fmt.Errorf("failed to clean target directory: %v", err)
 	}
 
 	logger.Debug("loading site")
-	siteMetadata := site.Load(options.SiteDir)
+	siteMetadata := site.Load(siteDir)
 
 	logger.Debug("loading partials templates")
-	tmpl, err := loadPartials("partials")
+	tmpl, err := loadPartials(partialsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load partials templates: %w", err)
 	}
 
 	logger.Debug("loading content")
-	contentLibrary, err := loadContent("content")
+	contentLibrary, err := loadContent(contentDir)
 	data := struct {
 		Site    site.Site
 		Content ContentLibrary
@@ -67,13 +67,17 @@ func Build(logger *slog.Logger, options Options) error {
 	logger.Debug("processing site pages and assets")
 	seq, finish := siteMetadata.Paths()
 	for sitePath := range seq {
-		targetPath, err := target(options.SiteDir, options.TargetDir, sitePath)
-		if err != nil {
-			return fmt.Errorf("could not map path: %v", err)
-		}
-
 		if site.IsPage(sitePath) {
 			logger.Debug("processing page", "path", sitePath)
+			targetPath, err := mapPagePath(
+				sitePath,
+				siteDir,
+				targetDir,
+			)
+			if err != nil {
+				return fmt.Errorf("could not map path: %v", err)
+			}
+
 			err = processPage(sitePath, targetPath, tmpl, data)
 			if err != nil {
 				return fmt.Errorf(
@@ -84,6 +88,15 @@ func Build(logger *slog.Logger, options Options) error {
 			}
 		} else {
 			logger.Debug("processing asset", "path", sitePath)
+			targetPath, err := mapAssetPath(
+				sitePath,
+				siteDir,
+				targetDir,
+			)
+			if err != nil {
+				return fmt.Errorf("could not map path: %v", err)
+			}
+
 			err = processAsset(sitePath, targetPath)
 			if err != nil {
 				return fmt.Errorf(
@@ -119,27 +132,6 @@ func clean(dir string) error {
 	return nil
 }
 
-// Returns output path under target dir given path in source dir.
-func target(siteDir string, targetDir string, path string) (string, error) {
-	relative, err := filepath.Rel(siteDir, path)
-	if err != nil {
-		return "", err
-	}
-
-	// TODO: Handle general case of extensions like this
-	if strings.HasSuffix(relative, ".html.tmpl") {
-		relative = strings.TrimSuffix(relative, ".html.tmpl") + ".html"
-	}
-
-	return filepath.Join(targetDir, relative), nil
-}
-
-// TODO: Layout dir should be configurable
-// TODO: Don't hardcode extension
-func mapLayoutNameToPath(name string) string {
-	return fmt.Sprintf("layouts/%s.html.tmpl", name)
-}
-
 func processPage(
 	sourcePath string,
 	targetPath string,
@@ -159,18 +151,23 @@ func processPage(
 	tmplName := filepath.Base(sourcePath)
 	execName := tmplName
 
-	if len(page.Frontmatter.Layouts) > 0 {
+	layouts := page.Frontmatter.LayoutsFullName()
+	if len(layouts) > 0 {
 		var layoutPaths []string
-		for _, layoutName := range page.Frontmatter.Layouts {
-			path := mapLayoutNameToPath(layoutName)
+		for _, layoutName := range layouts {
+			path, err := layoutPathFromName(layoutName, layoutsDir)
+			if err != nil {
+				return err
+			}
+
 			layoutPaths = append(layoutPaths, path)
 		}
 
-		tmpl, err = loadLayouts(partialsTmpl, layoutPaths)
+		tmpl, err = loadLayouts(layoutsDir, layoutPaths, partialsTmpl)
 		if err != nil {
 			return fmt.Errorf("failed to load layouts: %w", err)
 		}
-		execName = "layouts/" + page.Frontmatter.Layouts[0]
+		execName = layouts[0]
 	}
 
 	if tmpl != nil {

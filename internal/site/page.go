@@ -12,6 +12,17 @@ type PageFrontmatter struct {
 	Layouts []string
 }
 
+// Let user write just the simple layout name, but adjust here because the proper
+// name includes the `layouts` prefix.
+func (pm PageFrontmatter) LayoutsFullName() []string {
+	var adjustedNames []string
+	for _, name := range pm.Layouts {
+		adjustedNames = append(adjustedNames, "layouts/"+name)
+	}
+
+	return adjustedNames
+}
+
 type Page struct {
 	Path         string
 	Frontmatter  PageFrontmatter
@@ -19,7 +30,13 @@ type Page struct {
 }
 
 func IsPage(path string) bool {
-	return strings.HasSuffix(path, ".html") || strings.HasSuffix(path, ".tmpl")
+	for _, ext := range []string{".html", ".tmpl", ".gohtml"} {
+		if strings.HasSuffix(path, ext) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func LoadPage(path string) (Page, error) {

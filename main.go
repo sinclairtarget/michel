@@ -92,13 +92,8 @@ func configureLogging(level slog.Level) *slog.Logger {
 
 func runServer(logger *slog.Logger) {
 	serverBuild := func() {
-		options := build.Options{
-			SiteDir:   "site",
-			TargetDir: "public",
-		}
-
 		start := time.Now()
-		err := build.Build(logger, options)
+		err := build.Build(logger)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		}
@@ -131,11 +126,7 @@ func runServer(logger *slog.Logger) {
 }
 
 func runBuild(logger *slog.Logger) {
-	options := build.Options{
-		SiteDir:   "site",
-		TargetDir: "public",
-	}
-	err := build.Build(logger, options)
+	err := build.Build(logger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
