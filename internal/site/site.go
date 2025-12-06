@@ -1,9 +1,9 @@
 package site
 
 import (
+	"fmt"
 	"io/fs"
 	"iter"
-	"os"
 	"path/filepath"
 )
 
@@ -30,23 +30,32 @@ func Load(dir string) Site {
 func (s Site) Paths() (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
-		fsys := os.DirFS(s.BaseDir)
-		matches, err := fs.Glob(fsys, "*")
-		if err != nil {
-			iterErr = err
-			return
+		walkFunc := func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !d.IsDir() {
+				if !yield(path) {
+					return fs.SkipAll
+				}
+			}
+
+			return nil
 		}
 
-		for _, path := range matches {
-			finalPath := filepath.Join(s.BaseDir, path)
-			if !yield(finalPath) {
-				return
-			}
+		iterErr = filepath.WalkDir(s.BaseDir, walkFunc)
+		if iterErr != nil {
+			return
 		}
 	}
 
 	finish := func() error {
-		return iterErr
+		if iterErr != nil {
+			return fmt.Errorf("failed to iterate site paths: %w", iterErr)
+		}
+
+		return nil
 	}
 
 	return seq, finish

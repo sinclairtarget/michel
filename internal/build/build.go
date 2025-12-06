@@ -79,6 +79,7 @@ func Build(logger *slog.Logger) error {
 				return fmt.Errorf("could not map path: %v", err)
 			}
 
+			tmpl = template.Must(tmpl.Clone())
 			err = processPage(sitePath, targetPath, tmpl, data)
 			if err != nil {
 				return fmt.Errorf(
@@ -171,17 +172,18 @@ func processPage(
 		execName = layouts[0]
 	}
 
-	if tmpl != nil {
-		tmpl, err = tmpl.New(tmplName).Parse(page.TemplateText)
-	} else {
-		tmpl, err = template.New(tmplName).Parse(page.TemplateText)
-	}
+	tmpl, err = tmpl.New(tmplName).Parse(page.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse site template \"%s\": %w",
 			sourcePath,
 			err,
 		)
+	}
+
+	err = os.MkdirAll(filepath.Dir(targetPath), 0o755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
 	f, err := os.Create(targetPath)
@@ -194,6 +196,7 @@ func processPage(
 	}
 	defer f.Close()
 
+	tmpl = template.Must(tmpl.Clone())
 	err = tmpl.ExecuteTemplate(f, execName, data)
 	if err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
@@ -208,6 +211,11 @@ func processAsset(sourcePath string, targetPath string) error {
 		return err
 	}
 	defer source.Close()
+
+	err = os.MkdirAll(filepath.Dir(targetPath), 0o755)
+	if err != nil {
+		return err
+	}
 
 	target, err := os.Create(targetPath)
 	if err != nil {

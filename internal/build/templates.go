@@ -22,17 +22,10 @@ func loadPartials(dir string) (*template.Template, error) {
 		return nil, err
 	}
 
-	var tmpl *template.Template
+	tmpl := template.New("root")
 	for _, filename := range matches {
 		partialName := partialNameFromPath(filename)
-
-		var partialTmpl *template.Template
-		if tmpl == nil {
-			tmpl = template.New(partialName)
-			partialTmpl = tmpl
-		} else {
-			partialTmpl = tmpl.New(partialName)
-		}
+		partialTmpl := tmpl.New(partialName)
 
 		b, err := os.ReadFile(filename)
 		if err != nil {
@@ -62,11 +55,7 @@ func loadLayouts(
 	tmpl := existingTmpl
 	for _, path := range paths {
 		name := layoutNameFromPath(path)
-		if tmpl != nil {
-			tmpl = tmpl.New(name)
-		} else {
-			tmpl = template.New(name)
-		}
+		tmpl = tmpl.New(name)
 
 		b, err := os.ReadFile(path)
 		if err != nil {
