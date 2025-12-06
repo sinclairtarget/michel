@@ -1,6 +1,7 @@
 package content
 
 import (
+	"fmt"
 	"path/filepath"
 )
 
@@ -8,8 +9,13 @@ type ContentLibrary struct {
 	m map[string]Content
 }
 
-func (lib ContentLibrary) Get(name string) Content {
-	return lib.m[name]
+func (lib ContentLibrary) Get(name string) (Content, error) {
+	content, ok := lib.m[name]
+	if !ok {
+		return content, fmt.Errorf("content \"%s\" not found", name)
+	}
+
+	return content, nil
 }
 
 func LoadContent(dir string) (ContentLibrary, error) {
