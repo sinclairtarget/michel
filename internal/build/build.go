@@ -76,14 +76,14 @@ func Build(logger *slog.Logger) error {
 				targetDir,
 			)
 			if err != nil {
-				return fmt.Errorf("could not map path: %v", err)
+				return fmt.Errorf("could not map path: %w", err)
 			}
 
 			tmpl = template.Must(tmpl.Clone())
 			err = processPage(sitePath, targetPath, tmpl, data)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to process page \"%s\": %v",
+					"failed to process page \"%s\": %w",
 					sitePath,
 					err,
 				)
@@ -96,13 +96,13 @@ func Build(logger *slog.Logger) error {
 				targetDir,
 			)
 			if err != nil {
-				return fmt.Errorf("could not map path: %v", err)
+				return fmt.Errorf("could not map path: %w", err)
 			}
 
 			err = processAsset(sitePath, targetPath)
 			if err != nil {
 				return fmt.Errorf(
-					"failed to process asset \"%s\": %v",
+					"failed to process asset \"%s\": %w",
 					sitePath,
 					err,
 				)
