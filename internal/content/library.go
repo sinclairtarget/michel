@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+	"io/fs"
 	"path/filepath"
 )
 
@@ -18,25 +19,33 @@ func (lib ContentLibrary) Get(name string) (Content, error) {
 	return content, nil
 }
 
+// Load all content into memory.
 func LoadContent(dir string) (ContentLibrary, error) {
 	var library ContentLibrary
 
-	// Load plain text content
 	contentMap := map[string]Content{}
 
-	pattern := filepath.Join(dir, "*.txt")
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return library, err
-	}
-
-	for _, match := range matches {
-		c, err := LoadFromPlainText(match)
+	// Load plain text content
+	walkFunc := func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
-			return library, err
+			return err
 		}
 
-		contentMap[c.Name] = c
+		if !d.IsDir() {
+			c, err := LoadFromPlainText(dir, path)
+			if err != nil {
+				return err
+			}
+
+			contentMap[c.Name] = c
+		}
+
+		return nil
+	}
+
+	err := filepath.WalkDir(dir, walkFunc)
+	if err != nil {
+		return library, err
 	}
 
 	library.m = contentMap

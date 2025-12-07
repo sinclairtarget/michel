@@ -2,7 +2,6 @@ package site
 
 import (
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
@@ -51,10 +50,7 @@ func LoadPage(path string) (Page, error) {
 		panic("called LoadPage() on non-page path")
 	}
 
-	page.Path, err = filepath.Abs(path)
-	if err != nil {
-		return page, err
-	}
+	page.Path = path
 
 	f, err := os.Open(page.Path)
 	if err != nil {

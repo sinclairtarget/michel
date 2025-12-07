@@ -30,7 +30,7 @@ func IsPlaintext(path string) bool {
 	return strings.HasSuffix(path, ".txt")
 }
 
-func LoadFromPlainText(path string) (Content, error) {
+func LoadFromPlainText(contentDir string, path string) (Content, error) {
 	var (
 		content Content
 		err     error
@@ -40,12 +40,8 @@ func LoadFromPlainText(path string) (Content, error) {
 		panic("called LoadFromPlainText() on non-plain text file")
 	}
 
-	content.Path, err = filepath.Abs(path)
-	if err != nil {
-		return content, err
-	}
-
-	content.Name = contentNameFromPath(path)
+	content.Path = path
+	content.Name = contentNameFromPath(contentDir, content.Path)
 
 	f, err := os.Open(content.Path)
 	if err != nil {
@@ -71,6 +67,11 @@ func LoadFromPlainText(path string) (Content, error) {
 	return content, nil
 }
 
-func contentNameFromPath(path string) string {
-	return fileext.BaseWithoutExt(path)
+func contentNameFromPath(contentDir string, path string) string {
+	relPath, err := filepath.Rel(contentDir, path)
+	if err != nil {
+		panic(err)
+	}
+
+	return filepath.Join(filepath.Dir(relPath), fileext.BaseWithoutExt(path))
 }
