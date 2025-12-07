@@ -13,8 +13,9 @@ MyST also standardizes a syntax for extending the format with custom
 roles for use in Markdown content files. These provide functionality similar to
 Hugo's shortcodes without requiring any templating of content files.
 
-Finally, tools in the wider MyST ecosystem can be used to turn your content
-files into Word documents, PDFs, or more. 
+Finally, if you want to publish your writing in other ways, you aren't
+restricted to HTML. Tools in the wider MyST ecosystem can turn your content
+files into Word documents, PDFs, and more. 
 
 ## Build Overview
 Michel builds a site by reading input files from these directories:
