@@ -8,10 +8,10 @@ MyST is a Markdown specification that adds several useful features to Markdown
 in a standardized way, including tables, footnotes, inline math, and
 [admonitions](https://mystmd.org/spec/admonitions).
 
-MyST also standardizes a way to extend the format with custom "directives" and
-"roles." Michel provides a small set of custom directives and roles for use in
-Markdown content files. These provide functionality similar to Hugo's
-shortcodes without requiring any templating of content files.
+MyST also standardizes a syntax for extending the format with custom
+"directives" and "roles." Michel provides a small set of custom directives and
+roles for use in Markdown content files. These provide functionality similar to
+Hugo's shortcodes without requiring any templating of content files.
 
 Finally, tools in the wider MyST ecosystem can be used to turn your content
 files into Word documents, PDFs, or more. 
