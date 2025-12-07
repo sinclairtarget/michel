@@ -31,6 +31,7 @@ Michel builds a site by reading input files from these directories:
 After processing, all output gets written to the target directory named
 `public`.
 
+### The "Brutalist" Part
 Michel never infers the existence of any page based on your content files. The
 organization of your content under the `content` directory does not imply
 anything about the organization of pages in your built site. No content will
