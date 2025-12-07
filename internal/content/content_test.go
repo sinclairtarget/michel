@@ -8,24 +8,23 @@ import (
 	"github.com/sinclairtarget/michel/internal/content"
 )
 
-func TestLoadPlainText(t *testing.T) {
+func TestLoadFromMarkdown(t *testing.T) {
 	const fileContents = `---
 title: My Blog Post
 ---
-This is a blog post. Here is the first paragraph. It
-extends for multiple lines.
+This is a blog post. Here is the first paragraph.
 
-When we have a nice break like this, where there is an empty line, then we have
-a paragraph break.
+## Subheading
+Here is the second paragraph.
 `
 	tmpdir := t.TempDir()
-	filename := filepath.Join(tmpdir, "test-content.txt")
+	filename := filepath.Join(tmpdir, "test-content.md")
 	err := os.WriteFile(filename, []byte(fileContents), 0o644)
 	if err != nil {
 		t.Fatalf("failed to write content file to tmp dir: %v", err)
 	}
 
-	content, err := content.LoadFromPlainText(filename)
+	content, err := content.LoadFromMarkdown(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load content: %v", err)
 	}
@@ -56,12 +55,9 @@ a paragraph break.
 		)
 	}
 
-	expectedHtml := `<p>This is a blog post. Here is the first paragraph. It
-extends for multiple lines.
-</p>
-<p>When we have a nice break like this, where there is an empty line, then we have
-a paragraph break.
-</p>
+	expectedHtml := `<p>This is a blog post. Here is the first paragraph.</p>
+<h2>Subheading</h2>
+<p>Here is the second paragraph.</p>
 `
 	if content.Html != expectedHtml {
 		t.Errorf(

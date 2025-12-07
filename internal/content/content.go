@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
 	"github.com/sinclairtarget/michel/internal/util/fileext"
@@ -26,19 +25,11 @@ func (c Content) Body() template.HTML {
 	return template.HTML(c.Html)
 }
 
-func IsPlaintext(path string) bool {
-	return strings.HasSuffix(path, ".txt")
-}
-
-func LoadFromPlainText(contentDir string, path string) (Content, error) {
+func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	var (
 		content Content
 		err     error
 	)
-
-	if !IsPlaintext(path) {
-		panic("called LoadFromPlainText() on non-plain text file")
-	}
 
 	content.Path = path
 	content.Name = contentNameFromPath(contentDir, content.Path)
@@ -55,7 +46,7 @@ func LoadFromPlainText(contentDir string, path string) (Content, error) {
 	}
 
 	content.Frontmatter = result.Frontmatter
-	content.Html, err = parsePlainText(result.Text)
+	content.Html, err = parseMystMarkdown(result.Text)
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",

@@ -25,14 +25,13 @@ func LoadContent(dir string) (ContentLibrary, error) {
 
 	contentMap := map[string]Content{}
 
-	// Load plain text content
 	walkFunc := func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !d.IsDir() {
-			c, err := LoadFromPlainText(dir, path)
+			c, err := LoadFromMarkdown(dir, path)
 			if err != nil {
 				return err
 			}
