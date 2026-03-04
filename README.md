@@ -1,23 +1,40 @@
 # Michel ######################################################################
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
-Michel is a minimal static site builder based on [MyST Markdown](https://mystmd.org/).
+Michel is a "brutalist" static site generator based on [Markedly Structured
+Text (MyST)](https://mystmd.org/).
 
-## Why MyST? ##################################################################
+## Rationale ##################################################################
+### Why MyST? #################################################################
 MyST is a Markdown specification that adds several useful features to Markdown
-in a standardized way, including tables, footnotes, inline math, and
-[admonitions](https://mystmd.org/spec/admonitions).
+in a standardized way, including tables, footnotes, inline math, 
+[admonitions](https://mystmd.org/spec/admonitions), asides, and more.
 
-MyST also standardizes a syntax for extending the format with custom
+MyST defines an abstract syntax tree format for parsed MyST documents. In
+Michel, this means that, at templating time, you have access to your parsed
+content as a tree of MyST Markdown nodes (rather than as a blob of
+already-rendered HTML).
+
+MyST also defines a syntax for extending Markdown with custom
 "directives" and "roles." Michel provides a small set of custom directives and
 roles for use in Markdown content files. These provide functionality similar to
-Hugo's shortcodes without requiring any templating of content files.
+Hugo's shortcodes without requiring any templating of content files. You can
+also implement your own directives and roles using plugins.
 
-Finally, if you want to publish your writing in other ways, you aren't
-restricted to HTML. Tools in the wider MyST ecosystem can turn your content
-files into Word documents, PDFs, and more. 
+### Why "Brutalist"? ##########################################################
+Because Hugo is so complicated!
 
-## Build Overview #############################################################
+Michel prioritizes explicitness over ergonomics, perhaps to a fault. Michel
+makes no hidden assumptions about the mapping of your content, written in
+Markdown, to the organization of HTML pages in your built site. Every output
+page in your built site corresponds to a page template you have written. A
+page template can just contain HTML or it can optionally parse and render one
+or more of your Markdown content files.
+
+## Installation ###############################################################
+TODO
+
+## Usage ######################################################################
 Michel builds a site by reading input files from these directories:
 
 `content`: Your website content / prose, written using MyST Markdown.
@@ -26,15 +43,7 @@ Michel builds a site by reading input files from these directories:
 
 `layouts`: Your templated layouts that can be shared among multiple pages.
 
-`partials`: Your templated sub-components that can be shared among multiple pages.
+`partials`: Your templated sub-components that can be shared among multiple
+pages.
 
-After processing, all output gets written to the target directory named
-`public`.
-
-### The "Brutalist" Part ######################################################
-Michel never infers the existence of any page based on your content files. The
-organization of your content under the `content` directory does not imply
-anything about the organization of pages in your built site. No content will
-appear in your website unless it is explicitly used by a page template under
-the `site` directory. No page will appear in your website unless a page
-template exists for that path under `site`.
+After processing, all output gets written to a directory named `public`.
