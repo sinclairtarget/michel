@@ -1,6 +1,9 @@
 /*
 * Handles reading of files that might have YAML frontmatter.
 *
+* This package just handles the reading of arbitrary YAML frontmatter without
+* specifying a required shape.
+*
 * Frontmatter appears in a separate block that must be at the beginning of the
 * file. The YAML frontmatter is demarcated by a "---" line that appears at the
 * beginning and end of the block. Any number of "-" characters can be used as
