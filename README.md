@@ -2,7 +2,7 @@
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
 Michel is a "brutalist" static site generator based on [Markedly Structured
-Text (MyST)](https://mystmd.org/).
+Text (MyST)](https://mystmd.org/) and Go templating.
 
 ## Rationale ##################################################################
 ### Why MyST? #################################################################
