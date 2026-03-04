@@ -1,9 +1,9 @@
-# Michel #######################################################################
+# Michel ######################################################################
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
 Michel is a minimal static site builder based on [MyST Markdown](https://mystmd.org/).
 
-## Why MyST? ###################################################################
+## Why MyST? ##################################################################
 MyST is a Markdown specification that adds several useful features to Markdown
 in a standardized way, including tables, footnotes, inline math, and
 [admonitions](https://mystmd.org/spec/admonitions).
@@ -17,7 +17,7 @@ Finally, if you want to publish your writing in other ways, you aren't
 restricted to HTML. Tools in the wider MyST ecosystem can turn your content
 files into Word documents, PDFs, and more. 
 
-## Build Overview ##############################################################
+## Build Overview #############################################################
 Michel builds a site by reading input files from these directories:
 
 `content`: Your website content / prose, written using MyST Markdown.
@@ -31,7 +31,7 @@ Michel builds a site by reading input files from these directories:
 After processing, all output gets written to the target directory named
 `public`.
 
-### The "Brutalist" Part #######################################################
+### The "Brutalist" Part ######################################################
 Michel never infers the existence of any page based on your content files. The
 organization of your content under the `content` directory does not imply
 anything about the organization of pages in your built site. No content will
