@@ -7,8 +7,9 @@ Text (MyST)](https://mystmd.org/) and Go templating.
 ## Rationale ##################################################################
 ### Why MyST? #################################################################
 MyST is a Markdown specification that adds several useful features to Markdown
-in a standardized way, including tables, footnotes, inline math, 
-[admonitions](https://mystmd.org/spec/admonitions), asides, and more.
+in a standardized way, including tables, footnotes, subscripts/superscripts,
+abbreviations, [admonitions](https://mystmd.org/spec/admonitions), asides, and
+more.
 
 MyST defines an abstract syntax tree format for parsed MyST documents. In
 Michel, this means that, at templating time, you have access to your parsed
