@@ -1,11 +1,11 @@
-# Michel ######################################################################
+# Michel
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
 Michel is a "brutalist" static site generator based on [Markedly Structured
 Text (MyST)](https://mystmd.org/) and Go templating.
 
-## Rationale ##################################################################
-### Why MyST? #################################################################
+## Rationale
+### Why MyST?
 MyST is a Markdown specification that adds several useful features to Markdown
 in a standardized way, including tables, footnotes, subscripts/superscripts,
 abbreviations, [admonitions](https://mystmd.org/spec/admonitions), asides, and
@@ -22,7 +22,7 @@ roles for use in Markdown content files. These provide functionality similar to
 Hugo's shortcodes without requiring any templating of content files. You can
 also implement your own directives and roles using plugins.
 
-### Why "Brutalist"? ##########################################################
+### Why "Brutalist"?
 Because Hugo is so complicated!
 
 Michel prioritizes explicitness over ergonomics, perhaps to a fault. Michel
@@ -32,10 +32,10 @@ page in your built site corresponds to a page template you have written. A
 page template can just contain HTML or it can optionally parse and render one
 or more of your Markdown content files.
 
-## Installation ###############################################################
+## Installation
 TODO
 
-## Usage ######################################################################
+## Usage
 Michel builds a site by reading input files from these directories:
 
 `content`: Your website content / prose, written using MyST Markdown.
