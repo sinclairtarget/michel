@@ -17,7 +17,7 @@ func mapPagePath(
 	}
 
 	dirPart := filepath.Dir(relative)
-	filename := site.PageNameFromPath(path) + ".html"
+	filename := site.PageKeyFromPath(path) + ".html"
 	return filepath.Join(targetDir, dirPart, filename), nil
 }
 

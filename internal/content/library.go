@@ -10,10 +10,10 @@ type ContentLibrary struct {
 	m map[string]Content
 }
 
-func (lib ContentLibrary) Get(name string) (Content, error) {
-	content, ok := lib.m[name]
+func (lib ContentLibrary) Get(key string) (Content, error) {
+	content, ok := lib.m[key]
 	if !ok {
-		return content, fmt.Errorf("content \"%s\" not found", name)
+		return content, fmt.Errorf("content with key \"%s\" not found", key)
 	}
 
 	return content, nil
@@ -36,7 +36,7 @@ func LoadContent(dir string) (ContentLibrary, error) {
 				return err
 			}
 
-			contentMap[c.Name] = c
+			contentMap[c.Key] = c
 		}
 
 		return nil

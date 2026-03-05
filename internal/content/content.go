@@ -6,18 +6,21 @@ import (
 	"os"
 	"path/filepath"
 
+	atrus "github.com/sinclairtarget/libatrus-go"
+
 	"github.com/sinclairtarget/michel/internal/frontmatter"
 	"github.com/sinclairtarget/michel/internal/util/fileext"
 )
 
-type Frontmatter struct {
+type ContentFrontmatter struct {
 	Title string
 }
 
+// A file with content for the site.
 type Content struct {
-	Path        string
-	Name        string
-	Frontmatter Frontmatter
+	Key         string // unique id for the content
+	Path        string // path content was loaded from
+	Frontmatter ContentFrontmatter
 	Html        string
 }
 
@@ -32,7 +35,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	)
 
 	content.Path = path
-	content.Name = contentNameFromPath(contentDir, content.Path)
+	content.Key = contentKeyFromPath(contentDir, content.Path)
 
 	f, err := os.Open(content.Path)
 	if err != nil {
@@ -40,7 +43,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	}
 	defer f.Close()
 
-	result, err := frontmatter.ReadFile[Frontmatter](f)
+	result, err := frontmatter.ReadFile[ContentFrontmatter](f)
 	if err != nil {
 		return content, err
 	}
@@ -58,11 +61,25 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	return content, nil
 }
 
-func contentNameFromPath(contentDir string, path string) string {
+func contentKeyFromPath(contentDir string, path string) string {
 	relPath, err := filepath.Rel(contentDir, path)
 	if err != nil {
 		panic(err)
 	}
 
 	return filepath.Join(filepath.Dir(relPath), fileext.BaseWithoutExt(path))
+}
+
+func parseMystMarkdown(text string) (string, error) {
+	ast, err := atrus.ParseAST(text)
+	if err != nil {
+		return "", fmt.Errorf("libatrus parse error: %w", err)
+	}
+
+	html, err := atrus.RenderHTML(ast)
+	if err != nil {
+		return "", fmt.Errorf("libatrus render error: %w", err)
+	}
+
+	return html, nil
 }

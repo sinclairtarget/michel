@@ -37,12 +37,12 @@ Here is the second paragraph.
 		)
 	}
 
-	expectedName := "test-content"
-	if content.Name != expectedName {
+	expectedKey := "test-content"
+	if content.Key != expectedKey {
 		t.Errorf(
 			"content name incorrect; wanted %s, got %s",
-			expectedName,
-			content.Name,
+			expectedKey,
+			content.Key,
 		)
 	}
 

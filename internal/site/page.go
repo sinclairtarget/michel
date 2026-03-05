@@ -23,9 +23,10 @@ func (pm PageFrontmatter) LayoutsFullName() []string {
 	return adjustedNames
 }
 
+// An HTML page in the site, possibly templated.
 type Page struct {
-	Path         string
-	Name         string
+	Key          string // unique id for the page
+	Path         string // path page was loaded from
 	Frontmatter  PageFrontmatter
 	TemplateText string
 }
@@ -58,7 +59,7 @@ func LoadPage(path string) (Page, error) {
 	}
 	defer f.Close()
 
-	page.Name = PageNameFromPath(page.Path)
+	page.Key = PageKeyFromPath(page.Path)
 
 	result, err := frontmatter.ReadFile[PageFrontmatter](f)
 	if err != nil {
@@ -70,6 +71,6 @@ func LoadPage(path string) (Page, error) {
 	return page, nil
 }
 
-func PageNameFromPath(path string) string {
+func PageKeyFromPath(path string) string {
 	return fileext.BaseWithoutExt(path)
 }
