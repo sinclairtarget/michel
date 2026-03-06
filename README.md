@@ -24,7 +24,8 @@ implementing your own directives and roles.
 Because Hugo is so complicated!
 
 Michel prioritizes explicit setup over ergonomics, perhaps to a fault.
-Michel is the, uh, rebar, but you have to... pour the concrete yourself?
+Michel will... pour the concrete for you, but you have to, uh, set up the
+rebar?
 
 ## Non-Features
 * Michel will never have asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/).
