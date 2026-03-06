@@ -6,8 +6,9 @@ Text (MyST)](https://mystmd.org/) and Go templating.
 
 ## Rationale
 ### Why MyST?
-MyST is a Markdown specification that adds several features to CommonMark
-Markdown, including tables, footnotes, subscripts/superscripts, abbreviations,
+MyST is a Markdown specification that adds several features useful for
+technical and scientific writing to CommonMark Markdown, including tables,
+footnotes, subscripts/superscripts, abbreviations,
 [admonitions](https://mystmd.org/spec/admonitions), asides, and more.
 
 MyST defines an abstract syntax tree format for parsed MyST documents. In
