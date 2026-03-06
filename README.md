@@ -24,7 +24,7 @@ implementing your own directives and roles.
 Because Hugo is so complicated!
 
 Michel prioritizes explicit setup over ergonomics, perhaps to a fault.
-Michel will... pour the concrete for you, but you have to, uh, set up the
+Michel will, uh, pour the concrete for you, but you have to... set up the
 rebar?
 
 ## Non-Features
