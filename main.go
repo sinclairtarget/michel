@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/server"
-	"github.com/sinclairtarget/michel/internal/watch"
 )
 
 var Version string  // Semantic version
@@ -33,9 +31,9 @@ func main() {
 		fmt.Println()
 		fmt.Println("Subcommands:")
 		fmt.Println("  build")
-		fmt.Printf("\tBuilds site from content (default)\n")
+		fmt.Printf("\tBuilds site (default)\n")
 		fmt.Println("  serve")
-		fmt.Printf("\tRuns local server for site\n")
+		fmt.Printf("\tRuns local HTTP server for site\n")
 	}
 
 	mainFlagSet.Parse(os.Args[1:])
@@ -99,38 +97,14 @@ func runBuild(logger *slog.Logger) {
 }
 
 func runServer(logger *slog.Logger) {
-	serverBuild := func() {
-		start := time.Now()
-		err := build.Build(logger)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
-		}
-
-		elapsed := time.Now().Sub(start)
-		fmt.Printf("Site rebuilt in %dms.\n", elapsed.Milliseconds())
-	}
-	serverBuild() // Make sure `public` is up-to-date
-
-	watcher := watch.NewWatcher(build.PagesDir)
-	defer watcher.Close()
-
-	// Goroutine to watch for changes.
-	// Triggers a full build for any change.
-	go func() {
-		for event := range watcher.Events {
-			logger.Debug("got file modified event", "path", event.Path)
-			serverBuild()
-		}
-
-		logger.Debug("goroutine exiting; watch events channel closed")
-	}()
-
-	err := watcher.Start(logger)
+	// Build before running server
+	err := build.Build(logger)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not start file watcher: %v", err)
+		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
 	}
 
+	// Run server
 	err = server.Run(logger, "./public", 8080)
 	fmt.Fprintf(os.Stderr, "Server exited: %v", err)
 }
