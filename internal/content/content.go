@@ -9,7 +9,7 @@ import (
 	atrus "github.com/sinclairtarget/libatrus-go"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
-	"github.com/sinclairtarget/michel/internal/util/fileext"
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 type ContentFrontmatter struct {
@@ -67,7 +67,7 @@ func contentKeyFromPath(contentDir string, path string) string {
 		panic(err)
 	}
 
-	return filepath.Join(filepath.Dir(relPath), fileext.BaseWithoutExt(path))
+	return filepath.Join(filepath.Dir(relPath), util.BaseWithoutExt(path))
 }
 
 func parseMystMarkdown(text string) (string, error) {

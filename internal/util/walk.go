@@ -1,4 +1,4 @@
-package site
+package util
 
 import (
 	"fmt"
@@ -7,27 +7,7 @@ import (
 	"path/filepath"
 )
 
-type Config struct {
-	Name string
-}
-
-type Site struct {
-	BaseDir string
-	Config  Config
-}
-
-func Load(dir string) Site {
-	config := Config{
-		Name: "my site",
-	}
-
-	return Site{
-		BaseDir: dir,
-		Config:  config,
-	}
-}
-
-func (s Site) Paths() (iter.Seq[string], func() error) {
+func WalkPaths(dir string) (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
 		walkFunc := func(path string, d fs.DirEntry, err error) error {
@@ -44,7 +24,7 @@ func (s Site) Paths() (iter.Seq[string], func() error) {
 			return nil
 		}
 
-		iterErr = filepath.WalkDir(s.BaseDir, walkFunc)
+		iterErr = filepath.WalkDir(dir, walkFunc)
 		if iterErr != nil {
 			return
 		}
@@ -52,7 +32,7 @@ func (s Site) Paths() (iter.Seq[string], func() error) {
 
 	finish := func() error {
 		if iterErr != nil {
-			return fmt.Errorf("failed to iterate site paths: %w", iterErr)
+			return fmt.Errorf("failed to walk paths: %w", iterErr)
 		}
 
 		return nil

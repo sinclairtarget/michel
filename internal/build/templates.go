@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sinclairtarget/michel/internal/util/fileext"
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 var defaultLayoutExt = ".html.tmpl"
@@ -24,8 +24,8 @@ func loadPartials(dir string) (*template.Template, error) {
 
 	tmpl := template.New("root")
 	for _, filename := range matches {
-		partialName := partialNameFromPath(filename)
-		partialTmpl := tmpl.New(partialName)
+		partialKey := partialKeyFromPath(filename)
+		partialTmpl := tmpl.New(partialKey)
 
 		b, err := os.ReadFile(filename)
 		if err != nil {
@@ -42,8 +42,8 @@ func loadPartials(dir string) (*template.Template, error) {
 	return tmpl, nil
 }
 
-func partialNameFromPath(path string) string {
-	base := fileext.BaseWithoutExt(path)
+func partialKeyFromPath(path string) string {
+	base := util.BaseWithoutExt(path)
 	return "partials/" + base
 }
 
@@ -54,8 +54,8 @@ func loadLayouts(
 ) (*template.Template, error) {
 	tmpl := existingTmpl
 	for _, path := range paths {
-		name := layoutNameFromPath(path)
-		tmpl = tmpl.New(name)
+		key := layoutKeyFromPath(path)
+		tmpl = tmpl.New(key)
 
 		b, err := os.ReadFile(path)
 		if err != nil {
@@ -72,15 +72,15 @@ func loadLayouts(
 	return tmpl, nil
 }
 
-func layoutNameFromPath(path string) string {
-	base := fileext.BaseWithoutExt(path)
+func layoutKeyFromPath(path string) string {
+	base := util.BaseWithoutExt(path)
 	return "layouts/" + base
 }
 
-func layoutPathFromName(name string, layoutsDir string) (string, error) {
+func layoutPathFromKey(key string, layoutsDir string) (string, error) {
 	pattern := filepath.Join(
 		layoutsDir,
-		strings.TrimPrefix(name, "layouts/"),
+		strings.TrimPrefix(key, "layouts/"),
 	) + "*"
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
@@ -90,11 +90,11 @@ func layoutPathFromName(name string, layoutsDir string) (string, error) {
 	if len(matches) == 0 {
 		// Trust that this will fail later when we try to load this nonexistent
 		// file.
-		return name + defaultLayoutExt, nil
+		return key + defaultLayoutExt, nil
 	}
 
 	if len(matches) > 1 {
-		return "", fmt.Errorf("more than one match for layout \"%s\"", name)
+		return "", fmt.Errorf("more than one match for layout \"%s\"", key)
 	}
 
 	return matches[0], nil

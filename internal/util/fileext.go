@@ -1,4 +1,4 @@
-package fileext
+package util
 
 import (
 	"path/filepath"

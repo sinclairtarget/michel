@@ -22,7 +22,7 @@ func main() {
 	verboseFlag := mainFlagSet.Bool("v", false, "Enable verbose logging")
 
 	mainFlagSet.Usage = func() {
-		fmt.Println("Usage: michel [-v] SUBCOMMAND [subcommand options...]")
+		fmt.Println("Usage: michel [-v] [SUBCOMMAND] [subcommand options...]")
 		fmt.Println("       michel --version")
 		fmt.Println("michel builds websites from MyST markdown")
 
@@ -33,7 +33,7 @@ func main() {
 		fmt.Println()
 		fmt.Println("Subcommands:")
 		fmt.Println("  build")
-		fmt.Printf("\tBuilds site from content\n")
+		fmt.Printf("\tBuilds site from content (default)\n")
 		fmt.Println("  serve")
 		fmt.Printf("\tRuns local server for site\n")
 	}
@@ -53,10 +53,10 @@ func main() {
 	}
 
 	subcommand := mainFlagSet.Arg(0)
-	if subcommand == "serve" {
-		runServer(logger)
-	} else if subcommand == "build" || subcommand == "" {
+	if subcommand == "build" || subcommand == "" {
 		runBuild(logger)
+	} else if subcommand == "serve" {
+		runServer(logger)
 	} else {
 		fmt.Fprintf(os.Stderr, "Unrecognized subcommand: \"%s\"\n", subcommand)
 		mainFlagSet.Usage()
@@ -90,6 +90,14 @@ func configureLogging(level slog.Level) *slog.Logger {
 	return logger
 }
 
+func runBuild(logger *slog.Logger) {
+	err := build.Build(logger)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
+		os.Exit(1)
+	}
+}
+
 func runServer(logger *slog.Logger) {
 	serverBuild := func() {
 		start := time.Now()
@@ -103,9 +111,11 @@ func runServer(logger *slog.Logger) {
 	}
 	serverBuild() // Make sure `public` is up-to-date
 
-	watcher := watch.NewWatcher("site")
+	watcher := watch.NewWatcher(build.PagesDir)
 	defer watcher.Close()
 
+	// Goroutine to watch for changes.
+	// Triggers a full build for any change.
 	go func() {
 		for event := range watcher.Events {
 			logger.Debug("got file modified event", "path", event.Path)
@@ -123,12 +133,4 @@ func runServer(logger *slog.Logger) {
 
 	err = server.Run(logger, "./public", 8080)
 	fmt.Fprintf(os.Stderr, "Server exited: %v", err)
-}
-
-func runBuild(logger *slog.Logger) {
-	err := build.Build(logger)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
-		os.Exit(1)
-	}
 }

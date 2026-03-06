@@ -1,11 +1,11 @@
-package site
+package page
 
 import (
 	"os"
 	"strings"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
-	"github.com/sinclairtarget/michel/internal/util/fileext"
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 type PageFrontmatter struct {
@@ -72,5 +72,5 @@ func LoadPage(path string) (Page, error) {
 }
 
 func PageKeyFromPath(path string) string {
-	return fileext.BaseWithoutExt(path)
+	return util.BaseWithoutExt(path)
 }

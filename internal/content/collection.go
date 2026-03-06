@@ -3,15 +3,18 @@ package content
 import (
 	"fmt"
 	"io/fs"
+	"iter"
+	"maps"
 	"path/filepath"
 )
 
-type ContentLibrary struct {
-	m map[string]Content
+// Collection of site content loaded from the content directory
+type Collection struct {
+	loaded map[string]Content
 }
 
-func (lib ContentLibrary) Get(key string) (Content, error) {
-	content, ok := lib.m[key]
+func (c Collection) Get(key string) (Content, error) {
+	content, ok := c.loaded[key]
 	if !ok {
 		return content, fmt.Errorf("content with key \"%s\" not found", key)
 	}
@@ -19,9 +22,13 @@ func (lib ContentLibrary) Get(key string) (Content, error) {
 	return content, nil
 }
 
+func (c Collection) All() iter.Seq[Content] {
+	return maps.Values(c.loaded)
+}
+
 // Load all content into memory.
-func LoadContent(dir string) (ContentLibrary, error) {
-	var library ContentLibrary
+func LoadAllContent(dir string) (Collection, error) {
+	var collection Collection
 
 	contentMap := map[string]Content{}
 
@@ -44,9 +51,9 @@ func LoadContent(dir string) (ContentLibrary, error) {
 
 	err := filepath.WalkDir(dir, walkFunc)
 	if err != nil {
-		return library, err
+		return collection, err
 	}
 
-	library.m = contentMap
-	return library, nil
+	collection.loaded = contentMap
+	return collection, nil
 }

@@ -1,4 +1,4 @@
-package site_test
+package page_test
 
 import (
 	"os"
@@ -6,12 +6,12 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sinclairtarget/michel/internal/site"
+	"github.com/sinclairtarget/michel/internal/page"
 )
 
-// We should be able to load a templated site page from disk.
+// We should be able to load a templated page from disk.
 //
-// Site pages support YAML frontmatter, separated from the following content by
+// Pages support YAML frontmatter, separated from the following content by
 // `---`.
 func TestLoadPage(t *testing.T) {
 	const templateText = `{{ define "title" }}
@@ -35,11 +35,11 @@ layouts:
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	if !site.IsPage(filename) {
+	if !page.IsPage(filename) {
 		t.Fatalf("path \"%s\" should count as page path but did not", filename)
 	}
 
-	page, err := site.LoadPage(filename)
+	page, err := page.LoadPage(filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	page, err := site.LoadPage(filename)
+	page, err := page.LoadPage(filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}

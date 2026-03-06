@@ -3,30 +3,30 @@ package build
 import (
 	"path/filepath"
 
-	"github.com/sinclairtarget/michel/internal/site"
+	"github.com/sinclairtarget/michel/internal/page"
 )
 
 func mapPagePath(
 	path string,
-	siteDir string,
+	pagesDir string,
 	targetDir string,
 ) (string, error) {
-	relative, err := filepath.Rel(siteDir, path)
+	relative, err := filepath.Rel(pagesDir, path)
 	if err != nil {
 		return "", err
 	}
 
 	dirPart := filepath.Dir(relative)
-	filename := site.PageKeyFromPath(path) + ".html"
+	filename := page.PageKeyFromPath(path) + ".html"
 	return filepath.Join(targetDir, dirPart, filename), nil
 }
 
 func mapAssetPath(
 	path string,
-	siteDir string,
+	pagesDir string,
 	targetDir string,
 ) (string, error) {
-	relative, err := filepath.Rel(siteDir, path)
+	relative, err := filepath.Rel(pagesDir, path)
 	if err != nil {
 		return "", err
 	}
