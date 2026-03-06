@@ -31,7 +31,7 @@ Michel is the, uh, rebar, but you have to... pour the concrete yourself?
 * Michel will never make assumptions about how your content maps to the pages
   in your site. Every output page in your built site corresponds to a page
   template you have written. A page template can render any of your
-  Markdown content files within it.
+  Markdown content files within it (or none of them).
 
 ## Installation
 TODO
