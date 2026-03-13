@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"io"
+	"os"
 	"strings"
 	"testing"
 
@@ -23,10 +25,31 @@ func checkContains(
 	}
 }
 
+func copyTestdataFile(name string, destDir string) error {
+	fin, err := os.Open("testdata/" + name)
+	if err != nil {
+		return err
+	}
+	defer fin.Close()
+
+	fout, err := os.OpenFile(
+		destDir+"/"+name,
+		os.O_WRONLY|os.O_CREATE,
+		0644,
+	)
+	if err != nil {
+		return err
+	}
+	defer fout.Close()
+
+	_, err = io.Copy(fout, fin)
+	return err
+}
+
 // You can run `michel -h` or `michel --help` to get usage information.
 func TestHelp(t *testing.T) {
 	for _, flag := range []string{"-h", "--help"} {
-		result, err := michel.Run(flag)
+		result, err := michel.Run(t.TempDir(), flag)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -35,9 +58,33 @@ func TestHelp(t *testing.T) {
 	}
 }
 
+func TestConfig(t *testing.T) {
+	dir := t.TempDir()
+	err := copyTestdataFile("michel.yaml", dir)
+	if err != nil {
+		t.Fatalf("failed to copy testdata file: %v", err)
+	}
+
+	result, err := michel.Run(dir, "config")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := `title: CLI Test
+description: This is a test site.`
+	actual := strings.TrimSpace(result.Stdout)
+	if actual != expected {
+		t.Errorf(
+			"output did not match. Wanted...\n%s\nGot...\n%s",
+			expected,
+			actual,
+		)
+	}
+}
+
 // You can run `michel version` to get the current version.
 func TestVersion(t *testing.T) {
-	result, err := michel.Run("version")
+	result, err := michel.Run(t.TempDir(), "version")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,7 +128,7 @@ func TestVersion(t *testing.T) {
 
 // Specifying a non-existent subcommand produces an error.
 func TestNonExistentSubcommand(t *testing.T) {
-	result, err := michel.Run("foo")
+	result, err := michel.Run(t.TempDir(), "foo")
 	if err != nil {
 		t.Fatal(err)
 	}

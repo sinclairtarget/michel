@@ -9,6 +9,7 @@ import (
 	atrus "github.com/sinclairtarget/libatrus-go"
 
 	"github.com/sinclairtarget/michel/internal/build"
+	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/server"
 )
 
@@ -36,6 +37,8 @@ func main() {
 		fmt.Printf("\tBuilds site (default)\n")
 		fmt.Println("  serve")
 		fmt.Printf("\tRuns local HTTP server for site\n")
+		fmt.Println("  config")
+		fmt.Printf("\tPrints site config\n")
 		fmt.Println("  version")
 		fmt.Printf("\tPrint version and exit\n")
 	}
@@ -53,6 +56,8 @@ func main() {
 	switch subcommand {
 	case "build", "":
 		runBuild(logger)
+	case "config":
+		runConfig(logger)
 	case "serve":
 		runServer(logger)
 	case "version":
@@ -97,6 +102,17 @@ func runBuild(logger *slog.Logger) {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+func runConfig(logger *slog.Logger) {
+	c, err := config.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
+		os.Exit(1)
+	}
+
+	s := c.Dump()
+	fmt.Print(s)
 }
 
 func runServer(logger *slog.Logger) {

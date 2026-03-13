@@ -33,15 +33,12 @@ import (
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
-// Michel config
-const ConfigFilename string = "michel.yaml"
-
 // Input directories
 const (
-	ContentDir string = "content"
-	PagesDir = "site"
-	LayoutsDir = "layouts"
-	PartialsDir = "partials"
+	ContentDir  string = "content"
+	PagesDir           = "site"
+	LayoutsDir         = "layouts"
+	PartialsDir        = "partials"
 )
 
 // Output directory
@@ -52,10 +49,13 @@ func Build(logger *slog.Logger) error {
 	logger.Debug("beginning build")
 
 	logger.Debug("loading config")
-	cfg := config.Load(ConfigFilename)
+	cfg, err := config.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %v", err)
+	}
 
 	logger.Debug("cleaning target directory")
-	err := clean(TargetDir)
+	err = clean(TargetDir)
 	if err != nil {
 		return fmt.Errorf("failed to clean target directory: %v", err)
 	}
