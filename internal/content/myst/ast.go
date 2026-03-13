@@ -1,13 +1,16 @@
-package content
+package myst
 
 import (
-	"fmt"
 	"iter"
 
 	atrus "github.com/sinclairtarget/libatrus-go"
 )
 
-type MySTNode struct {
+// Represents a node in the parsed MyST AST.
+// See https://mystmd.org/spec/myst-schema
+//
+// We wrap the basic node with helper methods for traversing the AST.
+type Node struct {
 	*atrus.ASTNode
 }
 
@@ -16,8 +19,8 @@ type MySTNode struct {
 //
 // A pre-order traversal of the AST is performed and matching nodes are
 // returned in that order.
-func (n *MySTNode) All(nodeType string) iter.Seq[*MySTNode] {
-	seq := func(yield func(*MySTNode) bool) {
+func (n *Node) All(nodeType string) iter.Seq[*Node] {
+	seq := func(yield func(*Node) bool) {
 		if n.Type() == nodeType {
 			if !yield(n) {
 				return
@@ -25,7 +28,7 @@ func (n *MySTNode) All(nodeType string) iter.Seq[*MySTNode] {
 		}
 
 		for _, child := range n.Children() {
-			wrapped := MySTNode{child}
+			wrapped := Node{child}
 			for match := range wrapped.All(nodeType) {
 				if !yield(match) {
 					return
@@ -39,31 +42,10 @@ func (n *MySTNode) All(nodeType string) iter.Seq[*MySTNode] {
 
 // Returns the first node of the matching type found in AST during pre-order
 // traversal, or nil if no matching node is found.
-func (n *MySTNode) First(nodeType string) *MySTNode {
+func (n *Node) First(nodeType string) *Node {
 	for match := range n.All(nodeType) {
 		return match
 	}
 
 	return nil
-}
-
-func RenderMyST(node *MySTNode) (string, error) {
-	html, err := atrus.RenderHTML(node.ASTNode)
-	if err != nil {
-		return "", fmt.Errorf("libatrus render error: %w", err)
-	}
-
-	return html, nil
-}
-
-func parseMyST(text string) (*MySTNode, error) {
-	opts := atrus.ParseOpts{
-		ParseLevel: atrus.ParseLevelPost,
-	}
-	root, err := atrus.Parse(text, opts)
-	if err != nil {
-		return nil, fmt.Errorf("libatrus parse error: %w", err)
-	}
-
-	return &MySTNode{root}, nil
 }

@@ -28,16 +28,24 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
+	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/page"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
-var ConfigFilename string = "michel.yaml"
-var ContentDir string = "content"
-var PagesDir string = "site"
-var LayoutsDir string = "layouts"
-var PartialsDir string = "partials"
-var TargetDir string = "public"
+// Michel config
+const ConfigFilename string = "michel.yaml"
+
+// Input directories
+const (
+	ContentDir string = "content"
+	PagesDir = "site"
+	LayoutsDir = "layouts"
+	PartialsDir = "partials"
+)
+
+// Output directory
+const TargetDir string = "public"
 
 func Build(logger *slog.Logger) error {
 	start := time.Now()
@@ -177,7 +185,7 @@ func processPage(
 
 	tmpl = tmpl.New(tmplName)
 	funcMap := template.FuncMap{
-		"html": content.RenderMyST,
+		"html": myst.RenderHTML,
 	}
 	tmpl.Funcs(funcMap)
 

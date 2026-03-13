@@ -1,3 +1,4 @@
+// Represents content loaded from the content directory.
 package content
 
 import (
@@ -5,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/frontmatter"
 	"github.com/sinclairtarget/michel/internal/util"
 )
@@ -18,7 +20,7 @@ type Content struct {
 	Key         string // unique id for the content
 	Path        string // path content was loaded from
 	Frontmatter ContentFrontmatter
-	Root        *MySTNode
+	Root        *myst.Node
 }
 
 func LoadFromMarkdown(contentDir string, path string) (Content, error) {
@@ -42,7 +44,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	}
 
 	content.Frontmatter = result.Frontmatter
-	content.Root, err = parseMyST(result.Text)
+	content.Root, err = myst.Parse(result.Text)
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",

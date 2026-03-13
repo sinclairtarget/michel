@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// Collection of site content loaded from the content directory
+// Collection of site content loaded from the content directory.
 type Collection struct {
 	loaded map[string]Content
 }

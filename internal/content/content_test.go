@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/sinclairtarget/michel/internal/content"
+	"github.com/sinclairtarget/michel/internal/content/myst"
 )
 
 func TestLoadFromMarkdown(t *testing.T) {
@@ -59,7 +60,7 @@ Here is the second paragraph.
 <h2>Subheading</h2>
 <p>Here is the second paragraph.</p>
 `
-	output, err := content.RenderMyST(c.Root)
+	output, err := myst.RenderHTML(c.Root)
 	if err != nil {
 		t.Errorf("failed to render to HTML: %v", err)
 	}
