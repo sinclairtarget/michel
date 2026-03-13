@@ -1,4 +1,4 @@
-package watch
+package server
 
 import (
 	"fmt"
@@ -12,84 +12,84 @@ import (
 
 var debounceMs time.Duration = 1000 * time.Millisecond
 
-type Event struct {
-	Path string
+type event struct {
+	path string
 }
 
-type Watcher struct {
-	Path    string
-	Events  chan Event
+type watcher struct {
+	path    string
+	events  chan event
 	done    chan struct{}
 	watcher *fsnotify.Watcher
 }
 
-func NewWatcher(path string) Watcher {
-	watcher, err := fsnotify.NewWatcher()
+func newWatcher(path string) watcher {
+	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(fmt.Sprintf("failed to create fsnotify watcher: %v", err))
 	}
 
-	return Watcher{
-		Path:    path,
-		Events:  make(chan Event),
+	return watcher{
+		path:    path,
+		events:  make(chan event),
 		done:    make(chan struct{}),
-		watcher: watcher,
+		watcher: w,
 	}
 }
 
-func (w *Watcher) Start(logger *slog.Logger) error {
+func (w *watcher) start(logger *slog.Logger) error {
 	go func() {
 		timer := time.AfterFunc(math.MaxInt64, func() {})
 
 		for {
 			select {
-			case event, ok := <-w.watcher.Events:
+			case ev, ok := <-w.watcher.Events:
 				if !ok {
 					timer.Stop()
-					close(w.Events)
+					close(w.events)
 					return
 				}
 
-				logger.Debug("fsnotify event", "event", event)
-				if !event.Has(fsnotify.Chmod) {
+				logger.Debug("fsnotify event", "event", ev)
+				if !ev.Has(fsnotify.Chmod) {
 					timer.Stop()
 					timer = time.AfterFunc(debounceMs, func() {
-						w.Events <- Event{
-							Path: event.Name,
+						w.events <- event{
+							path: ev.Name,
 						}
 					})
 				}
 			case err, ok := <-w.watcher.Errors:
 				if !ok {
 					timer.Stop()
-					close(w.Events)
+					close(w.events)
 					return
 				}
 				logger.Error("fsnotify error", "error", err)
 			case <-w.done:
 				timer.Stop()
-				close(w.Events)
+				close(w.events)
 				return
 			}
 		}
 	}()
 
-	return w.add(logger, w.Path)
+	return w.add(logger, w.path)
 }
 
-func (w *Watcher) add(logger *slog.Logger, path string) error {
-	absPath, err := filepath.Abs(w.Path)
+func (w *watcher) add(logger *slog.Logger, path string) error {
+	absPath, err := filepath.Abs(w.path)
 	if err != nil {
 		return err
 	}
 
 	logger.Debug("adding fsnotify path", "filepath", absPath)
 
-	err = w.watcher.Add(w.Path)
+	err = w.watcher.Add(w.path)
 	return err
 }
 
-func (w *Watcher) Close() {
+func (w *watcher) close() {
 	close(w.done)
 	w.watcher.Close()
 }

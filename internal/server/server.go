@@ -16,25 +16,24 @@ import (
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/build"
-	"github.com/sinclairtarget/michel/internal/watch"
 )
 
 func Run(logger *slog.Logger, basePath string, port int) error {
-	watcher := watch.NewWatcher(build.PagesDir)
-	defer watcher.Close()
+	watcher := newWatcher(build.PagesDir)
+	defer watcher.close()
 
 	// Goroutine to watch for changes.
 	// Triggers a full build for any change.
 	go func() {
-		for event := range watcher.Events {
-			logger.Debug("got file modified event", "path", event.Path)
+		for event := range watcher.events {
+			logger.Debug("got file modified event", "path", event.path)
 			rebuild(logger)
 		}
 
 		logger.Debug("goroutine exiting; watch events channel closed")
 	}()
 
-	err := watcher.Start(logger)
+	err := watcher.start(logger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not start file watcher: %v", err)
 		os.Exit(1)
