@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"os"
 
+	atrus "github.com/sinclairtarget/libatrus-go"
+
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/server"
 )
@@ -55,6 +57,7 @@ func main() {
 		runServer(logger)
 	case "version":
 		fmt.Println(getVersionString())
+		fmt.Printf("libatrus: %s\n", atrus.Version())
 	default:
 		fmt.Fprintf(os.Stderr, "Unrecognized subcommand: \"%s\"\n", subcommand)
 		mainFlagSet.Usage()
