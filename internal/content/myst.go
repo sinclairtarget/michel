@@ -24,7 +24,7 @@ func (n *MySTNode) All(nodeType string) iter.Seq[*MySTNode] {
 			}
 		}
 
-		for child := range n.Children() {
+		for _, child := range n.Children() {
 			wrapped := MySTNode{child}
 			for match := range wrapped.All(nodeType) {
 				if !yield(match) {
