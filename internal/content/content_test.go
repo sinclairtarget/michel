@@ -24,34 +24,34 @@ Here is the second paragraph.
 		t.Fatalf("failed to write content file to tmp dir: %v", err)
 	}
 
-	content, err := content.LoadFromMarkdown(tmpdir, filename)
+	c, err := content.LoadFromMarkdown(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load content: %v", err)
 	}
 
-	if content.Path != filename {
+	if c.Path != filename {
 		t.Errorf(
 			"content path incorrect; wanted %s, got %s",
 			filename,
-			content.Path,
+			c.Path,
 		)
 	}
 
 	expectedKey := "test-content"
-	if content.Key != expectedKey {
+	if c.Key != expectedKey {
 		t.Errorf(
 			"content name incorrect; wanted %s, got %s",
 			expectedKey,
-			content.Key,
+			c.Key,
 		)
 	}
 
 	expectedTitle := "My Blog Post"
-	if content.Frontmatter.Title != expectedTitle {
+	if c.Frontmatter.Title != expectedTitle {
 		t.Errorf(
 			"title incorrect; wanted %s, got %s",
 			expectedTitle,
-			content.Frontmatter.Title,
+			c.Frontmatter.Title,
 		)
 	}
 
@@ -59,11 +59,15 @@ Here is the second paragraph.
 <h2>Subheading</h2>
 <p>Here is the second paragraph.</p>
 `
-	if content.Html != expectedHtml {
+	output, err := content.RenderMyST(c.Root)
+	if err != nil {
+		t.Errorf("failed to render to HTML: %v", err)
+	}
+	if output != expectedHtml {
 		t.Errorf(
 			"html incorrect; wanted:\n%s\ngot:\n%s\n",
 			expectedHtml,
-			content.Html,
+			output,
 		)
 	}
 }

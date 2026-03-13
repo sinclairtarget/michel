@@ -51,7 +51,7 @@ func main() {
 
 	subcommand := mainFlagSet.Arg(0)
 	switch subcommand {
-	case "build":
+	case "build", "":
 		runBuild(logger)
 	case "serve":
 		runServer(logger)
