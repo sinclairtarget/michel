@@ -2,11 +2,8 @@ package content
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
-
-	atrus "github.com/sinclairtarget/libatrus-go"
 
 	"github.com/sinclairtarget/michel/internal/frontmatter"
 	"github.com/sinclairtarget/michel/internal/util"
@@ -21,11 +18,7 @@ type Content struct {
 	Key         string // unique id for the content
 	Path        string // path content was loaded from
 	Frontmatter ContentFrontmatter
-	Html        string
-}
-
-func (c Content) Body() template.HTML {
-	return template.HTML(c.Html)
+	Root        *MySTNode
 }
 
 func LoadFromMarkdown(contentDir string, path string) (Content, error) {
@@ -49,7 +42,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	}
 
 	content.Frontmatter = result.Frontmatter
-	content.Html, err = parseMystMarkdown(result.Text)
+	content.Root, err = parseMyST(result.Text)
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",
@@ -68,18 +61,4 @@ func contentKeyFromPath(contentDir string, path string) string {
 	}
 
 	return filepath.Join(filepath.Dir(relPath), util.BaseWithoutExt(path))
-}
-
-func parseMystMarkdown(text string) (string, error) {
-	ast, err := atrus.ParseAST(text)
-	if err != nil {
-		return "", fmt.Errorf("libatrus parse error: %w", err)
-	}
-
-	html, err := atrus.RenderHTML(ast)
-	if err != nil {
-		return "", fmt.Errorf("libatrus render error: %w", err)
-	}
-
-	return html, nil
 }

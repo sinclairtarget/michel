@@ -175,7 +175,13 @@ func processPage(
 		execName = layouts[0]
 	}
 
-	tmpl, err = tmpl.New(tmplName).Parse(page.TemplateText)
+	tmpl = tmpl.New(tmplName)
+	funcMap := template.FuncMap{
+		"html": content.RenderMyST,
+	}
+	tmpl.Funcs(funcMap)
+
+	tmpl, err = tmpl.Parse(page.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",
