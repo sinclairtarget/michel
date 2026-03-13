@@ -16,12 +16,12 @@ var BuildTag string // Optional tag
 func main() {
 	mainFlagSet := flag.NewFlagSet("michel", flag.ExitOnError)
 
-	versionFlag := mainFlagSet.Bool("version", false, "Print version and exit")
-	verboseFlag := mainFlagSet.Bool("v", false, "Enable verbose logging")
+	verboseFlag := mainFlagSet.Bool("verbose", false, "Enable verbose logging")
 
 	mainFlagSet.Usage = func() {
-		fmt.Println("Usage: michel [-v] [SUBCOMMAND] [subcommand options...]")
-		fmt.Println("       michel --version")
+		fmt.Println(
+			"Usage: michel [-verbose] [SUBCOMMAND] [subcommand options...]",
+		)
 		fmt.Println("michel builds websites from MyST markdown")
 
 		fmt.Println()
@@ -34,14 +34,11 @@ func main() {
 		fmt.Printf("\tBuilds site (default)\n")
 		fmt.Println("  serve")
 		fmt.Printf("\tRuns local HTTP server for site\n")
+		fmt.Println("  version")
+		fmt.Printf("\tPrint version and exit\n")
 	}
 
 	mainFlagSet.Parse(os.Args[1:])
-
-	if *versionFlag {
-		fmt.Println(getVersionString())
-		return
-	}
 
 	var logger *slog.Logger
 	if *verboseFlag {
@@ -51,11 +48,14 @@ func main() {
 	}
 
 	subcommand := mainFlagSet.Arg(0)
-	if subcommand == "build" || subcommand == "" {
+	switch subcommand {
+	case "build":
 		runBuild(logger)
-	} else if subcommand == "serve" {
+	case "serve":
 		runServer(logger)
-	} else {
+	case "version":
+		fmt.Println(getVersionString())
+	default:
 		fmt.Fprintf(os.Stderr, "Unrecognized subcommand: \"%s\"\n", subcommand)
 		mainFlagSet.Usage()
 		os.Exit(1)
