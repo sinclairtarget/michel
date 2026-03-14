@@ -1,7 +1,7 @@
 # Michel
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
-Michel is a "Brutalist" static site generator based on [Markedly Structured
+Michel is a minimal static site generator based on [Markedly Structured
 Text (MyST)](https://mystmd.org/) and Go templating.
 
 ## Rationale
@@ -20,19 +20,20 @@ MyST also defines a syntax for extending Markdown with custom "directives" and
 "roles," inspired by reStructuredText. Michel allows you to create plugins
 implementing your own directives and roles.
 
-### Why "Brutalist"?
-Because Hugo is so complicated!
+### Why Minimal?
+Because Hugo is so big!
 
-Michel prioritizes explicit setup over ergonomics, perhaps to a fault.
-Michel will, uh, pour the concrete for you, but you have to... lay the rebar?
+Michel is inspired by Hugo but aspires to be smaller and more easily
+understood. A major difference between Michel and Hugo is that Michel makes no
+assumptions about how your content maps to pages on your website. There are no
+implicit conventions or `_index.md` Markdown files. Each page in your final
+website corresponds to a template you have created yourself. Templates can
+embed zero, one, or many arbitrary content files by name. This requires more
+manual setup, but it's easy to understand and it puts the power in your hands!
 
 ## Non-Features
-* Michel will never have asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/).
-* Michel will never have much in the way of configuration options. Just fork it.
-* Michel will never make assumptions about how your content maps to the pages
-  in your site. Every output page in your built site corresponds to a page
-  template you have written. A page template can render any of your
-  Markdown content files within it (or none of them).
+* Michel will never have built-in asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/), or use Michel as part of a larger build process.
+* Michel will never have extensive configuration options. Just fork it!
 
 ## Installation
 TODO
