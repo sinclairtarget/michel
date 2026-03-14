@@ -52,8 +52,8 @@ layouts:
 		)
 	}
 
-	expected := []string{"layouts/base", "layouts/article"}
-	if !slices.Equal(page.Frontmatter.LayoutsFullName(), expected) {
+	expected := []string{"base", "article"}
+	if !slices.Equal(page.Frontmatter.Layouts, expected) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
 			expected,

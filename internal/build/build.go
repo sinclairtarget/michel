@@ -1,15 +1,16 @@
 /*
-* Package responsible for coordinating the build.
+* Package build is responsible for coordinating the build.
 *
 * To build the site, we:
 * 	1. Load the Michel config.
 * 	2. Clean the target dir.
 * 	3. Load content.
-* 	4. Load partials, prefixed with "partials/"
-* 	5. For each page path:
+* 	4. Load layouts.
+* 	5. Load partials.
+* 	6. For each page path:
 * 		 If it is a page (*.html, *.html.tmpl):
 * 	       a. Read YAML frontmatter
-* 	       b. Load layouts defined in frontmatter, prefixed with layouts/
+* 	       b. Use layouts defined in frontmatter
 * 	       c. Load template
 * 	       d. ExecuteTemplate() with first layout
 * 	     Otherwise, it is an asset:
@@ -61,37 +62,50 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("loading content")
-	contentCollection, err := content.LoadAllContent(ContentDir)
-	data := struct {
-		Config  config.Config
-		Content content.Collection
-	}{
-		Config:  cfg,
-		Content: contentCollection,
+	collection, err := content.LoadAllContent(ContentDir)
+
+	logger.Debug("loading layouts")
+	layouts, err := page.LoadLayouts(LayoutsDir)
+	if err != nil {
+		return fmt.Errorf("failed to load layouts: %w", err)
 	}
 
 	logger.Debug("loading partials")
-	tmpl, err := loadPartials(PartialsDir)
+	partials, err := page.LoadPartials(PartialsDir)
 	if err != nil {
-		return fmt.Errorf("failed to load partials templates: %w", err)
+		return fmt.Errorf("failed to load partials: %w", err)
+	}
+
+	partialsTmpl := template.New("root")
+	partialsTmpl, err = page.AddPartials(partialsTmpl, partials)
+	if err != nil {
+		return fmt.Errorf("failed to parse partials: %w", err)
+	}
+
+	dot := page.Dot{
+		Config:  &cfg,
+		Content: &collection,
 	}
 
 	logger.Debug("processing pages and assets")
 	seq, finish := util.WalkPaths(PagesDir)
 	for path := range seq {
 		if page.IsPage(path) {
-			logger.Debug("processing page", "path", path)
-			targetPath, err := mapPagePath(
+			targetPath := mapPagePath(path, PagesDir, TargetDir)
+			logger.Debug(
+				"processing page",
+				"path",
 				path,
-				PagesDir,
-				TargetDir,
+				"targetPath",
+				targetPath,
 			)
-			if err != nil {
-				return fmt.Errorf("could not map path: %w", err)
-			}
-
-			tmpl = template.Must(tmpl.Clone())
-			err = processPage(path, targetPath, tmpl, data)
+			err = processPage(
+				path,
+				targetPath,
+				layouts,
+				template.Must(partialsTmpl.Clone()),
+				dot,
+			)
 			if err != nil {
 				return fmt.Errorf(
 					"failed to process page \"%s\": %w",
@@ -100,16 +114,14 @@ func Build(logger *slog.Logger) error {
 				)
 			}
 		} else {
-			logger.Debug("processing asset", "path", path)
-			targetPath, err := mapAssetPath(
+			targetPath := mapAssetPath(path, PagesDir, TargetDir)
+			logger.Debug(
+				"processing asset",
+				"path",
 				path,
-				PagesDir,
-				TargetDir,
+				"targetPath",
+				targetPath,
 			)
-			if err != nil {
-				return fmt.Errorf("could not map path: %w", err)
-			}
-
 			err = processAsset(path, targetPath)
 			if err != nil {
 				return fmt.Errorf(
@@ -148,10 +160,11 @@ func clean(dir string) error {
 func processPage(
 	sourcePath string,
 	targetPath string,
+	layouts []page.Layout,
 	partialsTmpl *template.Template,
-	data any,
+	dot page.Dot,
 ) error {
-	page, err := page.LoadPage(sourcePath)
+	p, err := page.LoadPage(PagesDir, sourcePath)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to load page \"%s\": %w",
@@ -160,36 +173,24 @@ func processPage(
 		)
 	}
 
-	tmpl := partialsTmpl
-	tmplName := filepath.Base(sourcePath)
-	execName := tmplName
-
-	layouts := page.Frontmatter.LayoutsFullName()
-	if len(layouts) > 0 {
-		var layoutPaths []string
-		for _, layoutKey := range layouts {
-			path, err := layoutPathFromKey(layoutKey, LayoutsDir)
-			if err != nil {
-				return err
-			}
-
-			layoutPaths = append(layoutPaths, path)
-		}
-
-		tmpl, err = loadLayouts(LayoutsDir, layoutPaths, partialsTmpl)
-		if err != nil {
-			return fmt.Errorf("failed to load layouts: %w", err)
-		}
-		execName = layouts[0]
+	// Add layouts
+	layoutKeys := p.Frontmatter.Layouts
+	tmpl, err := page.AddLayouts(partialsTmpl, layouts, layoutKeys)
+	if err != nil {
+		return err // TODO: Handle layout not found
 	}
 
+	// Set up page template
+	tmplName := filepath.Base(sourcePath)
 	tmpl = tmpl.New(tmplName)
+
+	// Add functions
 	funcMap := template.FuncMap{
 		"html": myst.RenderHTML,
 	}
 	tmpl.Funcs(funcMap)
 
-	tmpl, err = tmpl.Parse(page.TemplateText)
+	tmpl, err = tmpl.Parse(p.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",
@@ -198,6 +199,7 @@ func processPage(
 		)
 	}
 
+	// Execute template and write output
 	err = os.MkdirAll(filepath.Dir(targetPath), 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
@@ -213,8 +215,17 @@ func processPage(
 	}
 	defer f.Close()
 
+	var execName string
+	if len(layoutKeys) > 0 {
+		// If we have layouts, we should start executing with the first one
+		execName = page.TemplateName("layouts", layoutKeys[0])
+	} else {
+		// No layouts? Just execute the page template
+		execName = tmplName
+	}
+
 	tmpl = template.Must(tmpl.Clone())
-	err = tmpl.ExecuteTemplate(f, execName, data)
+	err = tmpl.ExecuteTemplate(f, execName, dot)
 	if err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
@@ -222,6 +233,7 @@ func processPage(
 	return nil
 }
 
+// Just copies file to output directory unmodified.
 func processAsset(sourcePath string, targetPath string) error {
 	source, err := os.Open(sourcePath)
 	if err != nil {

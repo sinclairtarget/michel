@@ -1,3 +1,27 @@
+/*
+* Package page implements all functionality for handling HTML pages and
+* templating.
+*
+* In Michel, all files under the site/ directory get copied into the output
+* directory during a build. Files that have an extension of .html, .tmpl, or
+* .gohtml are considered pages. (Files that do not are considered assets.) All
+* pages are run through the templating system.
+*
+* There are three kinds of templates in Michel:
+*
+*   1. Page templates (files under the site/ directory)
+*   2. Layouts (used if referenced in the YAML frontmatter for a page)
+*   3. Partials (pulled in if invoked in a page template)
+*
+* Layouts and partial must be referenced using their keys. The key for a
+* layout or partial is the filepath to that layout or partial relative to the
+* layouts/ or partials/ directory respectively, excluding the file extension.
+*
+* Layouts are rendered in the order they are listed in the YAML frontmatter.
+*
+* All Michel templates have access to certain Michel data structures exposed
+* via the '.' (dot).
+ */
 package page
 
 import (
@@ -9,18 +33,7 @@ import (
 )
 
 type PageFrontmatter struct {
-	Layouts []string
-}
-
-// Let user write just the simple layout name, but adjust here because the proper
-// name includes the `layouts` prefix.
-func (pm PageFrontmatter) LayoutsFullName() []string {
-	var adjustedNames []string
-	for _, name := range pm.Layouts {
-		adjustedNames = append(adjustedNames, "layouts/"+name)
-	}
-
-	return adjustedNames
+	Layouts []string // Keys naming the layouts that should be used
 }
 
 // An HTML page in the site, possibly templated.
@@ -31,17 +44,7 @@ type Page struct {
 	TemplateText string
 }
 
-func IsPage(path string) bool {
-	for _, ext := range []string{".html", ".tmpl", ".gohtml"} {
-		if strings.HasSuffix(path, ext) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func LoadPage(path string) (Page, error) {
+func LoadPage(dir string, path string) (Page, error) {
 	var (
 		page Page
 		err  error
@@ -59,7 +62,7 @@ func LoadPage(path string) (Page, error) {
 	}
 	defer f.Close()
 
-	page.Key = PageKeyFromPath(page.Path)
+	page.Key = util.KeyFromPath(dir, page.Path)
 
 	result, err := frontmatter.ReadFile[PageFrontmatter](f)
 	if err != nil {
@@ -71,6 +74,12 @@ func LoadPage(path string) (Page, error) {
 	return page, nil
 }
 
-func PageKeyFromPath(path string) string {
-	return util.BaseWithoutExt(path)
+func IsPage(path string) bool {
+	for _, ext := range []string{".html", ".tmpl", ".gohtml"} {
+		if strings.HasSuffix(path, ext) {
+			return true
+		}
+	}
+
+	return false
 }
