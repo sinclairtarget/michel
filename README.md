@@ -34,6 +34,7 @@ manual setup, but it's easy to understand and it puts the power in your hands!
 ## Non-Features
 * Michel will never have built-in asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/), or use Michel as part of a larger build process.
 * Michel will never have extensive configuration options. Just fork it!
+* Michel will never have shortcodes. MyST makes shortcodes unnecessary.
 
 ## Installation
 TODO
