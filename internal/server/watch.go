@@ -17,20 +17,20 @@ type event struct {
 }
 
 type watcher struct {
-	path    string
+	dirs    []string
 	events  chan event
 	done    chan struct{}
 	watcher *fsnotify.Watcher
 }
 
-func newWatcher(path string) watcher {
+func newWatcher(dirs ...string) watcher {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		panic(fmt.Sprintf("failed to create fsnotify watcher: %v", err))
 	}
 
 	return watcher{
-		path:    path,
+		dirs:    dirs,
 		events:  make(chan event),
 		done:    make(chan struct{}),
 		watcher: w,
@@ -74,22 +74,30 @@ func (w *watcher) start(logger *slog.Logger) error {
 		}
 	}()
 
-	return w.add(logger, w.path)
+	for _, dir := range w.dirs {
+		err := w.add(logger, dir)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (w *watcher) add(logger *slog.Logger, path string) error {
-	absPath, err := filepath.Abs(w.path)
+	// Not necessary for fsnotify, but it's nice to have the absolute path for
+	// logging.
+	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
 
 	logger.Debug("adding fsnotify path", "filepath", absPath)
 
-	err = w.watcher.Add(w.path)
+	err = w.watcher.Add(absPath)
 	return err
 }
 
-func (w *watcher) close() {
+func (w *watcher) close_() {
 	close(w.done)
 	w.watcher.Close()
 }

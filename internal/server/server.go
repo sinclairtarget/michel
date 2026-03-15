@@ -19,8 +19,13 @@ import (
 )
 
 func Run(logger *slog.Logger, basePath string, port int) error {
-	watcher := newWatcher(build.PagesDir)
-	defer watcher.close()
+	watcher := newWatcher(
+		build.ContentDir,
+		build.LayoutsDir,
+		build.PartialsDir,
+		build.PagesDir,
+	)
+	defer watcher.close_()
 
 	// Goroutine to watch for changes.
 	// Triggers a full build for any change.
