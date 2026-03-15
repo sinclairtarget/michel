@@ -29,7 +29,6 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
-	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/page"
 	"github.com/sinclairtarget/michel/internal/util"
 )
@@ -82,11 +81,6 @@ func Build(logger *slog.Logger) error {
 		return fmt.Errorf("failed to parse partials: %w", err)
 	}
 
-	dot := page.Dot{
-		Config:  &cfg,
-		Content: &collection,
-	}
-
 	logger.Debug("processing pages and assets")
 	seq, finish := util.WalkPaths(PagesDir)
 	for path := range seq {
@@ -102,9 +96,10 @@ func Build(logger *slog.Logger) error {
 			err = processPage(
 				path,
 				targetPath,
+				cfg,
+				collection,
 				layouts,
 				template.Must(partialsTmpl.Clone()),
-				dot,
 			)
 			if err != nil {
 				return fmt.Errorf(
@@ -160,9 +155,10 @@ func clean(dir string) error {
 func processPage(
 	sourcePath string,
 	targetPath string,
+	cfg config.Config,
+	collection content.Collection,
 	layouts []page.Layout,
 	partialsTmpl *template.Template,
-	dot page.Dot,
 ) error {
 	p, err := page.LoadPage(PagesDir, sourcePath)
 	if err != nil {
@@ -184,11 +180,11 @@ func processPage(
 	tmplName := filepath.Base(sourcePath)
 	tmpl = tmpl.New(tmplName)
 
-	// Add functions
-	funcMap := template.FuncMap{
-		"html": myst.RenderHTML,
+	dot := page.Dot{
+		Config:  &cfg,
+		Content: &collection,
 	}
-	tmpl.Funcs(funcMap)
+	tmpl.Funcs(dot.FuncMap())
 
 	tmpl, err = tmpl.Parse(p.TemplateText)
 	if err != nil {
