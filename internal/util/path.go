@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"iter"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -42,7 +43,8 @@ func KeyFromPath(dir string, path string) string {
 	return filepath.Join(dirPart, base)
 }
 
-// Returns an iterator over all paths under the given directory.
+// Returns an iterator over all files under the given directory (including
+// under subdirectories).
 func WalkPaths(dir string) (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
@@ -75,4 +77,51 @@ func WalkPaths(dir string) (iter.Seq[string], func() error) {
 	}
 
 	return seq, finish
+}
+
+// Returns an iterator over all directories under the given directory,
+// recursively.
+//
+// Will also yield the directory itself.
+func WalkDirs(dir string) (iter.Seq[string], func() error) {
+	var iterErr error
+	seq := func(yield func(string) bool) {
+		walkFunc := func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				if !yield(path) {
+					return fs.SkipAll
+				}
+			}
+
+			return nil
+		}
+
+		iterErr = filepath.WalkDir(dir, walkFunc)
+		if iterErr != nil {
+			return
+		}
+	}
+
+	finish := func() error {
+		if iterErr != nil {
+			return fmt.Errorf("failed to walk directories: %w", iterErr)
+		}
+
+		return nil
+	}
+
+	return seq, finish
+}
+
+func IsDir(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+
+	return info.IsDir(), nil
 }

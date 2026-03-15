@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 var debounceMs time.Duration = 1000 * time.Millisecond
@@ -37,6 +39,10 @@ func newWatcher(dirs ...string) watcher {
 	}
 }
 
+// Starts goroutine for handling fsnotify events.
+//
+// We debounce events to make sure we don't prematurely handle a change to a
+// file (e.g. by reacting to the first of several write events).
 func (w *watcher) start(logger *slog.Logger) error {
 	go func() {
 		timer := time.AfterFunc(math.MaxInt64, func() {})
@@ -50,13 +56,17 @@ func (w *watcher) start(logger *slog.Logger) error {
 					return
 				}
 
-				logger.Debug("fsnotify event", "event", ev)
-				if !ev.Has(fsnotify.Chmod) {
+				wrappedEv, err := w.handle(logger, ev)
+				if err != nil {
+					logger.Error("error handling fsnotify event", "error", err)
+					close(w.events)
+					return
+				}
+
+				if wrappedEv != nil {
 					timer.Stop()
 					timer = time.AfterFunc(debounceMs, func() {
-						w.events <- event{
-							path: ev.Name,
-						}
+						w.events <- *wrappedEv
 					})
 				}
 			case err, ok := <-w.watcher.Errors:
@@ -74,13 +84,57 @@ func (w *watcher) start(logger *slog.Logger) error {
 		}
 	}()
 
+	// Set up initial watch list
 	for _, dir := range w.dirs {
-		err := w.add(logger, dir)
+		seq, finish := util.WalkDirs(dir)
+
+		// Dir will be a subdir of itself, so it gets added too
+		for subdir := range seq {
+			err := w.add(logger, subdir)
+			if err != nil {
+				return err
+			}
+		}
+
+		err := finish()
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
+}
+
+// Logic for handling fsnotify events.
+//
+// Returns a nil event if the event should be ignored.
+func (w *watcher) handle(
+	logger *slog.Logger,
+	ev fsnotify.Event,
+) (*event, error) {
+	logger.Debug("fsnotify event", "event", ev)
+	if ev.Has(fsnotify.Chmod) {
+		return nil, nil
+	}
+
+	if ev.Has(fsnotify.Create) {
+		isDir, err := util.IsDir(ev.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if isDir {
+			// A new directory! We want to watch it too
+			err := w.add(logger, ev.Name)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return &event{
+		path: ev.Name,
+	}, nil
 }
 
 func (w *watcher) add(logger *slog.Logger, path string) error {
@@ -91,7 +145,7 @@ func (w *watcher) add(logger *slog.Logger, path string) error {
 		return err
 	}
 
-	logger.Debug("adding fsnotify path", "filepath", absPath)
+	logger.Debug("adding path to watch list", "filepath", absPath)
 
 	err = w.watcher.Add(absPath)
 	return err
