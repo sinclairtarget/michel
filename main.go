@@ -125,5 +125,5 @@ func runServer(logger *slog.Logger) {
 
 	// Run server
 	err = server.Run(logger, "./public", 8080)
-	fmt.Fprintf(os.Stderr, "Server exited: %v", err)
+	fmt.Fprintf(os.Stderr, "Server exited: %v\n", err)
 }

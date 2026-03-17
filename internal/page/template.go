@@ -112,7 +112,7 @@ func AddLayouts(
 func loadStencils(dir string) ([]stencil, error) {
 	stencils := []stencil{}
 
-	seq, finish := util.WalkPaths(dir)
+	seq, finish := util.WalkFiles(dir)
 	for path := range seq {
 		b, err := os.ReadFile(path)
 		if err != nil {

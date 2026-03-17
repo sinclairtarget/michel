@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"iter"
@@ -45,7 +46,9 @@ func KeyFromPath(dir string, path string) string {
 
 // Returns an iterator over all files under the given directory (including
 // under subdirectories).
-func WalkPaths(dir string) (iter.Seq[string], func() error) {
+//
+// If the given directory doesn't exist, returns an empty sequence.
+func WalkFiles(dir string) (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
 		walkFunc := func(path string, d fs.DirEntry, err error) error {
@@ -62,9 +65,9 @@ func WalkPaths(dir string) (iter.Seq[string], func() error) {
 			return nil
 		}
 
-		iterErr = filepath.WalkDir(dir, walkFunc)
-		if iterErr != nil {
-			return
+		err := filepath.WalkDir(dir, walkFunc)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
+			iterErr = err
 		}
 	}
 
@@ -83,6 +86,8 @@ func WalkPaths(dir string) (iter.Seq[string], func() error) {
 // recursively.
 //
 // Will also yield the directory itself.
+//
+// If the directory doesn't exist, returns an empty sequence.
 func WalkDirs(dir string) (iter.Seq[string], func() error) {
 	var iterErr error
 	seq := func(yield func(string) bool) {
@@ -100,9 +105,9 @@ func WalkDirs(dir string) (iter.Seq[string], func() error) {
 			return nil
 		}
 
-		iterErr = filepath.WalkDir(dir, walkFunc)
-		if iterErr != nil {
-			return
+		err := filepath.WalkDir(dir, walkFunc)
+		if err != nil && !errors.Is(err, fs.ErrNotExist) {
+			iterErr = err
 		}
 	}
 

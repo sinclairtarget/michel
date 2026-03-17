@@ -2,10 +2,10 @@ package content
 
 import (
 	"fmt"
-	"io/fs"
 	"iter"
 	"maps"
-	"path/filepath"
+
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 // Collection of site content loaded from the content directory.
@@ -27,29 +27,21 @@ func (c Collection) All() iter.Seq[Content] {
 }
 
 // Load all content into memory.
-func LoadAllContent(dir string) (Collection, error) {
+func LoadCollection(dir string) (Collection, error) {
 	var collection Collection
 
 	contentMap := map[string]Content{}
-
-	walkFunc := func(path string, d fs.DirEntry, err error) error {
+	seq, finish := util.WalkFiles(dir)
+	for path := range seq {
+		c, err := LoadFromMarkdown(dir, path)
 		if err != nil {
-			return err
+			return collection, err
 		}
 
-		if !d.IsDir() {
-			c, err := LoadFromMarkdown(dir, path)
-			if err != nil {
-				return err
-			}
-
-			contentMap[c.Key] = c
-		}
-
-		return nil
+		contentMap[c.Key] = c
 	}
 
-	err := filepath.WalkDir(dir, walkFunc)
+	err := finish()
 	if err != nil {
 		return collection, err
 	}

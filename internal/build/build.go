@@ -61,7 +61,7 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("loading content")
-	collection, err := content.LoadAllContent(ContentDir)
+	collection, err := content.LoadCollection(ContentDir)
 
 	logger.Debug("loading layouts")
 	layouts, err := page.LoadLayouts(LayoutsDir)
@@ -82,7 +82,7 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("processing pages and assets")
-	seq, finish := util.WalkPaths(PagesDir)
+	seq, finish := util.WalkFiles(PagesDir)
 	for path := range seq {
 		if page.IsPage(path) {
 			targetPath := mapPagePath(path, PagesDir, TargetDir)
@@ -140,11 +140,6 @@ func Build(logger *slog.Logger) error {
 
 func clean(dir string) error {
 	err := os.RemoveAll(dir)
-	if err != nil {
-		return err
-	}
-
-	err = os.Mkdir(dir, 0o755)
 	if err != nil {
 		return err
 	}
