@@ -4,7 +4,6 @@ package content
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/frontmatter"
@@ -23,6 +22,7 @@ type Content struct {
 	Root        *myst.Node
 }
 
+// Loads content file into memory, parsing the markdown.
 func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	var (
 		content Content
@@ -30,7 +30,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	)
 
 	content.Path = path
-	content.Key = contentKeyFromPath(contentDir, content.Path)
+	content.Key = util.KeyFromPath(contentDir, content.Path)
 
 	f, err := os.Open(content.Path)
 	if err != nil {
@@ -54,13 +54,4 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	}
 
 	return content, nil
-}
-
-func contentKeyFromPath(contentDir string, path string) string {
-	relPath, err := filepath.Rel(contentDir, path)
-	if err != nil {
-		panic(err)
-	}
-
-	return filepath.Join(filepath.Dir(relPath), util.BaseWithoutExt(path))
 }
