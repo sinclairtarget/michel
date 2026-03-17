@@ -17,12 +17,12 @@ func Parse(text string) (*Node, error) {
 		return nil, fmt.Errorf("libatrus parse error: %w", err)
 	}
 
-	return &Node{root}, nil
+	return &Node{*root}, nil
 }
 
 // Render MyST AST to HTML.
 func RenderHTML(node *Node) (string, error) {
-	html, err := atrus.RenderHTML(node.ASTNode)
+	html, err := atrus.RenderHTML(&node.ASTNode)
 	if err != nil {
 		return "", fmt.Errorf("libatrus render error: %w", err)
 	}

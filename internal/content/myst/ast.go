@@ -11,7 +11,7 @@ import (
 //
 // We wrap the basic node with helper methods for traversing the AST.
 type Node struct {
-	*atrus.ASTNode
+	atrus.ASTNode
 }
 
 // Returns an iterator over all nodes in the AST rooted at the given node that
@@ -28,7 +28,7 @@ func (n *Node) All(nodeType string) iter.Seq[*Node] {
 		}
 
 		for _, child := range n.Children() {
-			wrapped := Node{child}
+			wrapped := Node{*child}
 			for match := range wrapped.All(nodeType) {
 				if !yield(match) {
 					return
