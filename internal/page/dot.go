@@ -2,6 +2,7 @@ package page
 
 import (
 	"html/template"
+	"io"
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
@@ -17,8 +18,22 @@ type Dot struct {
 	Content *content.Collection
 }
 
-func (d Dot) FuncMap() template.FuncMap {
+// Defines the functions available in Michel templates.
+func (d Dot) FuncMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 	return template.FuncMap{
 		"html": myst.RenderHTML,
+		"partial": func(key string, data any) error {
+			return executePartial(tmpl, w, key, data)
+		},
 	}
+}
+
+func executePartial(
+	tmpl *template.Template,
+	w io.Writer,
+	key string,
+	data any,
+) error {
+	execName := TemplateName("partials", key)
+	return tmpl.ExecuteTemplate(w, execName, data)
 }

@@ -169,33 +169,7 @@ func processPage(
 		)
 	}
 
-	// Add layouts
-	layoutKeys := p.Frontmatter.Layouts
-	tmpl, err := page.AddLayouts(partialsTmpl, layouts, layoutKeys)
-	if err != nil {
-		return err // TODO: Handle layout not found
-	}
-
-	// Set up page template
-	tmplName := filepath.Base(sourcePath)
-	tmpl = tmpl.New(tmplName)
-
-	dot := page.Dot{
-		Config:  &cfg,
-		Content: &collection,
-	}
-	tmpl.Funcs(dot.FuncMap())
-
-	tmpl, err = tmpl.Parse(p.TemplateText)
-	if err != nil {
-		return fmt.Errorf(
-			"failed to parse template \"%s\": %w",
-			sourcePath,
-			err,
-		)
-	}
-
-	// Execute template and write output
+	// Set up output file
 	err = os.MkdirAll(filepath.Dir(targetPath), 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
@@ -211,6 +185,33 @@ func processPage(
 	}
 	defer f.Close()
 
+	// Add layouts
+	layoutKeys := p.Frontmatter.Layouts
+	tmpl, err := page.AddLayouts(partialsTmpl, layouts, layoutKeys)
+	if err != nil {
+		return err // TODO: Handle layout not found
+	}
+
+	// Parse page template
+	tmplName := filepath.Base(sourcePath)
+	tmpl = tmpl.New(tmplName)
+
+	dot := page.Dot{
+		Config:  &cfg,
+		Content: &collection,
+	}
+	tmpl.Funcs(dot.FuncMap(tmpl, f))
+
+	tmpl, err = tmpl.Parse(p.TemplateText)
+	if err != nil {
+		return fmt.Errorf(
+			"failed to parse template \"%s\": %w",
+			sourcePath,
+			err,
+		)
+	}
+
+	// Execute template and write output
 	var execName string
 	if len(layoutKeys) > 0 {
 		// If we have layouts, we should start executing with the first one
