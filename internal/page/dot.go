@@ -3,6 +3,7 @@ package page
 import (
 	"html/template"
 	"io"
+	"time"
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
@@ -16,6 +17,7 @@ import (
 type Dot struct {
 	Config  *config.Config
 	Content *content.Collection
+	Now     time.Time // Should be when the build started
 }
 
 // Defines the functions available in Michel templates.

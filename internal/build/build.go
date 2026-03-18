@@ -100,6 +100,7 @@ func Build(logger *slog.Logger) error {
 				collection,
 				layouts,
 				template.Must(partialsTmpl.Clone()),
+				start,
 			)
 			if err != nil {
 				return fmt.Errorf(
@@ -154,6 +155,7 @@ func processPage(
 	collection content.Collection,
 	layouts []page.Layout,
 	partialsTmpl *template.Template,
+	now time.Time,
 ) error {
 	p, err := page.LoadPage(PagesDir, sourcePath)
 	if err != nil {
@@ -194,6 +196,7 @@ func processPage(
 	dot := page.Dot{
 		Config:  &cfg,
 		Content: &collection,
+		Now:     now,
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, f))
 
