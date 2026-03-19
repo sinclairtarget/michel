@@ -31,7 +31,7 @@ func (c contentFrontmatter) ParsedDate() (time.Time, error) {
 		return fallbackDate, nil
 	}
 
-	t, err := time.Parse("2006-01-02", c.Date)
+	t, err := time.ParseInLocation("2006-01-02", c.Date, time.Local)
 	if err != nil {
 		return fallbackDate, err
 	}
@@ -79,6 +79,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse frontmatter date in content file \"%s\": %w",
+			path,
 			err,
 		)
 	}
