@@ -42,11 +42,11 @@ Here is the second paragraph.
 	}
 
 	expectedKey := "test-content"
-	if c.Key != expectedKey {
+	if c.Key() != expectedKey {
 		t.Errorf(
 			"content name incorrect; wanted %s, got %s",
 			expectedKey,
-			c.Key,
+			c.Key(),
 		)
 	}
 

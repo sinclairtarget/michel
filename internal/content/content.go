@@ -41,13 +41,17 @@ func (c contentFrontmatter) ParsedDate() (time.Time, error) {
 
 // A file with content for the site.
 type Content struct {
-	Key  string // unique id for the content
+	key  string // unique id for the content
 	Path string // path content was loaded from
 	Root *myst.Node
 	// From frontmatter
 	Title       string
 	Description string
 	Date        time.Time
+}
+
+func (c Content) Key() string {
+	return c.key
 }
 
 // Loads content file into memory, parsing the markdown.
@@ -57,8 +61,8 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 		err     error
 	)
 
+	content.key = util.KeyFromPath(contentDir, path)
 	content.Path = path
-	content.Key = util.KeyFromPath(contentDir, content.Path)
 
 	f, err := os.Open(content.Path)
 	if err != nil {
@@ -95,4 +99,26 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	}
 
 	return content, nil
+}
+
+// Load all content into memory.
+func LoadCollection(dir string) (util.Collection[Content], error) {
+	collection := util.NewCollection[Content]()
+
+	seq, finish := util.WalkFiles(dir)
+	for path := range seq {
+		c, err := LoadFromMarkdown(dir, path)
+		if err != nil {
+			return collection, err
+		}
+
+		collection.Add(c.key, c)
+	}
+
+	err := finish()
+	if err != nil {
+		return collection, err
+	}
+
+	return collection, nil
 }

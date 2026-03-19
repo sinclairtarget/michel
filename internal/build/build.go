@@ -61,7 +61,7 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("loading content")
-	collection, err := content.LoadCollection(ContentDir)
+	contentCollection, err := content.LoadCollection(ContentDir)
 
 	logger.Debug("loading layouts")
 	layouts, err := page.LoadLayouts(LayoutsDir)
@@ -97,7 +97,7 @@ func Build(logger *slog.Logger) error {
 				path,
 				targetPath,
 				cfg,
-				collection,
+				contentCollection,
 				layouts,
 				template.Must(partialsTmpl.Clone()),
 				start,
@@ -152,7 +152,7 @@ func processPage(
 	sourcePath string,
 	targetPath string,
 	cfg config.Config,
-	collection content.Collection,
+	contentCollection util.Collection[content.Content],
 	layouts []page.Layout,
 	partialsTmpl *template.Template,
 	now time.Time,
@@ -195,7 +195,7 @@ func processPage(
 
 	dot := page.Dot{
 		Config:  &cfg,
-		Content: &collection,
+		Content: &contentCollection,
 		Page:    &p,
 		Now:     now,
 	}
