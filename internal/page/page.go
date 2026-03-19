@@ -32,7 +32,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
-type PageFrontmatter struct {
+type pageFrontmatter struct {
 	Layouts []string // Keys naming the layouts that should be used
 }
 
@@ -40,8 +40,9 @@ type PageFrontmatter struct {
 type Page struct {
 	Key          string // unique id for the page
 	Path         string // path page was loaded from
-	Frontmatter  PageFrontmatter
 	TemplateText string
+	// From frontmatter
+	Layouts []string
 }
 
 func LoadPage(dir string, path string) (Page, error) {
@@ -64,12 +65,14 @@ func LoadPage(dir string, path string) (Page, error) {
 
 	page.Key = util.KeyFromPath(dir, page.Path)
 
-	result, err := frontmatter.ReadFile[PageFrontmatter](f)
+	result, err := frontmatter.ReadFile[pageFrontmatter](f)
 	if err != nil {
 		return page, err
 	}
 
-	page.Frontmatter = result.Frontmatter
+	// Load frontmatter fields
+	page.Layouts = result.Frontmatter.Layouts
+
 	page.TemplateText = result.Text
 	return page, nil
 }

@@ -53,11 +53,11 @@ layouts:
 	}
 
 	expected := []string{"base", "article"}
-	if !slices.Equal(page.Frontmatter.Layouts, expected) {
+	if !slices.Equal(page.Layouts, expected) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
 			expected,
-			page.Frontmatter.Layouts,
+			page.Layouts,
 		)
 	}
 
@@ -100,7 +100,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		)
 	}
 
-	if len(page.Frontmatter.Layouts) > 0 {
+	if len(page.Layouts) > 0 {
 		t.Error("page frontmatter layouts non-empty; wanted empty slice")
 	}
 

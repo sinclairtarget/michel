@@ -183,7 +183,7 @@ func processPage(
 	defer f.Close()
 
 	// Add layouts
-	layoutKeys := p.Frontmatter.Layouts
+	layoutKeys := p.Layouts
 	tmpl, err := page.AddLayouts(partialsTmpl, layouts, layoutKeys)
 	if err != nil {
 		return err // TODO: Handle layout not found
@@ -196,6 +196,7 @@ func processPage(
 	dot := page.Dot{
 		Config:  &cfg,
 		Content: &collection,
+		Page:    &p,
 		Now:     now,
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, f))
