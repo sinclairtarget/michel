@@ -1,4 +1,4 @@
-package page
+package template
 
 import (
 	"html/template"
@@ -8,6 +8,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
+	"github.com/sinclairtarget/michel/internal/page"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -18,7 +19,7 @@ import (
 type Dot struct {
 	Config  *config.Config
 	Content *util.Collection[content.Content]
-	Page    *Page
+	Page    *page.Page
 	Now     time.Time // Should be when the build started
 }
 

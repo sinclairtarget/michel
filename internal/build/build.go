@@ -30,6 +30,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/page"
+	mtemplate "github.com/sinclairtarget/michel/internal/template"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -64,19 +65,19 @@ func Build(logger *slog.Logger) error {
 	contentCollection, err := content.LoadCollection(ContentDir)
 
 	logger.Debug("loading layouts")
-	layouts, err := page.LoadLayouts(LayoutsDir)
+	layouts, err := mtemplate.LoadLayouts(LayoutsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load layouts: %w", err)
 	}
 
 	logger.Debug("loading partials")
-	partials, err := page.LoadPartials(PartialsDir)
+	partials, err := mtemplate.LoadPartials(PartialsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load partials: %w", err)
 	}
 
 	partialsTmpl := template.New("root")
-	partialsTmpl, err = page.AddPartials(partialsTmpl, partials)
+	partialsTmpl, err = mtemplate.AddPartials(partialsTmpl, partials)
 	if err != nil {
 		return fmt.Errorf("failed to parse partials: %w", err)
 	}
@@ -153,7 +154,7 @@ func processPage(
 	targetPath string,
 	cfg config.Config,
 	contentCollection util.Collection[content.Content],
-	layouts []page.Layout,
+	layouts []mtemplate.Layout,
 	partialsTmpl *template.Template,
 	now time.Time,
 ) error {
@@ -184,7 +185,7 @@ func processPage(
 
 	// Add layouts
 	layoutKeys := p.Layouts
-	tmpl, err := page.AddLayouts(partialsTmpl, layouts, layoutKeys)
+	tmpl, err := mtemplate.AddLayouts(partialsTmpl, layouts, layoutKeys)
 	if err != nil {
 		return err // TODO: Handle layout not found
 	}
@@ -193,7 +194,7 @@ func processPage(
 	tmplName := filepath.Base(sourcePath)
 	tmpl = tmpl.New(tmplName)
 
-	dot := page.Dot{
+	dot := mtemplate.Dot{
 		Config:  &cfg,
 		Content: &contentCollection,
 		Page:    &p,
@@ -214,7 +215,7 @@ func processPage(
 	var execName string
 	if len(layoutKeys) > 0 {
 		// If we have layouts, we should start executing with the first one
-		execName = page.TemplateName("layouts", layoutKeys[0])
+		execName = mtemplate.TemplateName("layouts", layoutKeys[0])
 	} else {
 		// No layouts? Just execute the page template
 		execName = tmplName

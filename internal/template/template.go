@@ -1,4 +1,27 @@
-package page
+/*
+* Package template implements all templating functionality for pages.
+*
+* In Michel, all files under the site/ directory get copied into the output
+* directory during a build. Files that have an extension of .html, .tmpl, or
+* .gohtml are considered pages. (Files that do not are considered assets.) All
+* pages are run through the templating system.
+*
+* There are three kinds of templates in Michel:
+*
+*   1. Page templates (files under the site/ directory)
+*   2. Layouts (used if referenced in the YAML frontmatter for a page)
+*   3. Partials (pulled in if invoked in a page template)
+*
+* Layouts and partials must be referenced using their keys. The key for a
+* layout or partial is the filepath to that layout or partial relative to the
+* layouts/ or partials/ directory respectively, excluding the file extension.
+*
+* Layouts are rendered in the order they are listed in the YAML frontmatter.
+*
+* All Michel templates have access to certain Michel data structures exposed
+* via the '.' (dot).
+ */
+package template
 
 import (
 	"fmt"

@@ -18,13 +18,13 @@ func TestLoadPage(t *testing.T) {
 <title>{{ .Content.Title }}</title>
 {{ end }}
 {{ define "main" }}
-    {{ template "partials/article" . }}
+    {{ partial "article" . }}
 {{ end }}
 `
 	const fileContents = `---
 layouts:
   - base
-  - article
+  - blog
 ---
 ` + templateText
 
@@ -52,7 +52,7 @@ layouts:
 		)
 	}
 
-	expected := []string{"base", "article"}
+	expected := []string{"base", "blog"}
 	if !slices.Equal(page.Layouts, expected) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
@@ -76,7 +76,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 <title>{{ .Content.Title }}</title>
 {{ end }}
 {{ define "main" }}
-    {{ template "partials/article" . }}
+    {{ partial "article" . }}
 {{ end }}
 `
 
