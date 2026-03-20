@@ -211,9 +211,10 @@ func processPage(
 	tmpl = tmpl.New(tmplName)
 
 	dot := Dot{
-		Config:  &scope.config,
-		Content: &scope.corpus,
-		Page:    &metadata,
+		Config:  scope.config,
+		Content: scope.corpus,
+		Site:    scope.site,
+		Page:    metadata,
 		Now:     scope.start,
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, fout))

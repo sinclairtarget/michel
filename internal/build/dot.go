@@ -16,10 +16,11 @@ import (
 //
 // This is basically the public API of Michel.
 type Dot struct {
-	Config  *config.Config
-	Content *content.Corpus
-	Page    *site.PageMetadata
-	Now     time.Time // Should be when the build started
+	Config  config.Config
+	Content content.Corpus
+	Site    site.Site
+	Page    site.PageMetadata // Currently rendering page
+	Now     time.Time         // Should be when the build started
 }
 
 // Defines the functions available in Michel templates.
