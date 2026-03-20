@@ -42,7 +42,7 @@ func (c Corpus) Get(key string) (Content, error) {
 		)
 	}
 
-	content, err := metadata.LoadContent()
+	content, err := LoadContent(metadata)
 	if err != nil {
 		return content, err
 	}

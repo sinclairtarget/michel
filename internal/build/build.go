@@ -218,7 +218,7 @@ func processPage(
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, fout))
 
-	page, err := metadata.LoadPage()
+	page, err := site.LoadPage(metadata)
 	if err != nil {
 		return err
 	}

@@ -57,7 +57,7 @@ layouts:
 		)
 	}
 
-	page, err := metadata.LoadPage()
+	page, err := site.LoadPage(metadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +105,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		t.Error("page frontmatter layouts non-empty; wanted empty slice")
 	}
 
-	page, err := metadata.LoadPage()
+	page, err := site.LoadPage(metadata)
 	if err != nil {
 		t.Fatal(err)
 	}

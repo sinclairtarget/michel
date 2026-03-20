@@ -26,19 +26,6 @@ type Page struct {
 	TemplateText string
 }
 
-// Load page fully.
-func (m PageMetadata) LoadPage() (Page, error) {
-	page := Page{PageMetadata: m}
-
-	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
-	if err != nil {
-		return page, err
-	}
-
-	page.TemplateText = result.Text
-	return page, nil
-}
-
 func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 	var (
 		metadata PageMetadata
@@ -71,6 +58,19 @@ func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 	metadata.Layouts = result.Frontmatter.Layouts
 
 	return metadata, nil
+}
+
+// Load page fully.
+func LoadPage(m PageMetadata) (Page, error) {
+	page := Page{PageMetadata: m}
+
+	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
+	if err != nil {
+		return page, err
+	}
+
+	page.TemplateText = result.Text
+	return page, nil
 }
 
 func isPagePath(path string) bool {

@@ -77,7 +77,7 @@ Here is the second paragraph.
 		)
 	}
 
-	c, err := m.LoadContent()
+	c, err := content.LoadContent(m)
 	if err != nil {
 		t.Fatal(err)
 	}

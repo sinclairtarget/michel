@@ -60,7 +60,7 @@ func (m Metadata) Key() string {
 }
 
 // Loads and parses content.
-func (m Metadata) LoadContent() (Content, error) {
+func LoadContent(m Metadata) (Content, error) {
 	content := Content{Metadata: m}
 
 	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
