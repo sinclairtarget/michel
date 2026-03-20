@@ -13,6 +13,7 @@ import (
 // Fixed filename for config file
 const Filename string = "michel.yaml"
 
+// Configuration for the Michel site.
 type Config struct {
 	Title       string
 	Description string

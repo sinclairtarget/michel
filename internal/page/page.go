@@ -4,11 +4,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sinclairtarget/michel/internal/frontmatter"
+	"github.com/sinclairtarget/michel/internal/load"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
-type pageFrontmatter struct {
+type frontmatter struct {
 	Layouts []string // Keys naming the layouts that should be used
 }
 
@@ -41,7 +41,7 @@ func LoadPage(dir string, path string) (Page, error) {
 
 	page.Key = util.KeyFromPath(dir, page.Path)
 
-	result, err := frontmatter.ReadFile[pageFrontmatter](f)
+	result, err := load.ReadFile[frontmatter](page.Path, load.Opts{})
 	if err != nil {
 		return page, err
 	}

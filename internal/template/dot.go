@@ -9,7 +9,6 @@ import (
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/page"
-	"github.com/sinclairtarget/michel/internal/util"
 )
 
 // Defines the data structures available for access via '.' in Michel
@@ -18,7 +17,7 @@ import (
 // This is basically the public API of Michel.
 type Dot struct {
 	Config  *config.Config
-	Content *util.Collection[content.Content]
+	Content *content.Corpus
 	Page    *page.Page
 	Now     time.Time // Should be when the build started
 }

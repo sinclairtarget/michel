@@ -4,7 +4,7 @@
 * To build the site, we:
 * 	1. Load the Michel config.
 * 	2. Clean the target dir.
-* 	3. Load content.
+* 	3. Load content corpus.
 * 	4. Load layouts.
 * 	5. Load partials.
 * 	6. For each page path:
@@ -62,7 +62,7 @@ func Build(logger *slog.Logger) error {
 	}
 
 	logger.Debug("loading content")
-	contentCollection, err := content.LoadCollection(ContentDir)
+	corpus, err := content.LoadCorpus(ContentDir)
 
 	logger.Debug("loading layouts")
 	layouts, err := mtemplate.LoadLayouts(LayoutsDir)
@@ -98,7 +98,7 @@ func Build(logger *slog.Logger) error {
 				path,
 				targetPath,
 				cfg,
-				contentCollection,
+				corpus,
 				layouts,
 				template.Must(partialsTmpl.Clone()),
 				start,
@@ -153,7 +153,7 @@ func processPage(
 	sourcePath string,
 	targetPath string,
 	cfg config.Config,
-	contentCollection util.Collection[content.Content],
+	corpus content.Corpus,
 	layouts []mtemplate.Layout,
 	partialsTmpl *template.Template,
 	now time.Time,
@@ -196,7 +196,7 @@ func processPage(
 
 	dot := mtemplate.Dot{
 		Config:  &cfg,
-		Content: &contentCollection,
+		Content: &corpus,
 		Page:    &p,
 		Now:     now,
 	}

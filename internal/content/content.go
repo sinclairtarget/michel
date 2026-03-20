@@ -3,15 +3,15 @@ package content
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/content/myst"
-	"github.com/sinclairtarget/michel/internal/frontmatter"
+	"github.com/sinclairtarget/michel/internal/load"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
-type contentFrontmatter struct {
+// Frontmatter loaded from the beginning of a content file.
+type frontmatter struct {
 	Title       string
 	Description string
 	Date        string
@@ -26,12 +26,12 @@ var fallbackDate time.Time = time.Date(1, 1, 1, 0, 0, 0, 0, time.Local)
 //
 // We use this to represent the calendar date associated with the content. But
 // this is just a calendar date and not an instant in time.
-func (c contentFrontmatter) ParsedDate() (time.Time, error) {
-	if c.Date == "" {
+func (f frontmatter) ParsedDate() (time.Time, error) {
+	if f.Date == "" {
 		return fallbackDate, nil
 	}
 
-	t, err := time.ParseInLocation("2006-01-02", c.Date, time.Local)
+	t, err := time.ParseInLocation("2006-01-02", f.Date, time.Local)
 	if err != nil {
 		return fallbackDate, err
 	}
@@ -39,53 +39,33 @@ func (c contentFrontmatter) ParsedDate() (time.Time, error) {
 	return t, nil
 }
 
-// A file with content for the site.
-type Content struct {
+// Metadata describing a piece of Michel content available on disk.
+type Metadata struct {
 	key  string // unique id for the content
-	Path string // path content was loaded from
-	Root *myst.Node
+	Path string // filepath for this file
 	// From frontmatter
 	Title       string
 	Description string
 	Date        time.Time
 }
 
-func (c Content) Key() string {
-	return c.key
+// Content fully loaded into memory and parsed.
+type Content struct {
+	Metadata
+	Root *myst.Node
 }
 
-// Loads content file into memory, parsing the markdown.
-func LoadFromMarkdown(contentDir string, path string) (Content, error) {
-	var (
-		content Content
-		err     error
-	)
+func (m Metadata) Key() string {
+	return m.key
+}
 
-	content.key = util.KeyFromPath(contentDir, path)
-	content.Path = path
+// Loads and parses content.
+func (m Metadata) LoadContent() (Content, error) {
+	content := Content{Metadata: m}
 
-	f, err := os.Open(content.Path)
+	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
 	if err != nil {
 		return content, err
-	}
-	defer f.Close()
-
-	result, err := frontmatter.ReadFile[contentFrontmatter](f)
-	if err != nil {
-		return content, err
-	}
-
-	// Load frontmatter fields
-	content.Title = result.Frontmatter.Title
-	content.Description = result.Frontmatter.Description
-
-	content.Date, err = result.Frontmatter.ParsedDate()
-	if err != nil {
-		return content, fmt.Errorf(
-			"failed to parse frontmatter date in content file \"%s\": %w",
-			path,
-			err,
-		)
 	}
 
 	// Parse MyST
@@ -93,7 +73,7 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",
-			path,
+			m.Path,
 			err,
 		)
 	}
@@ -101,24 +81,36 @@ func LoadFromMarkdown(contentDir string, path string) (Content, error) {
 	return content, nil
 }
 
-// Load all content into memory.
-func LoadCollection(dir string) (util.Collection[Content], error) {
-	collection := util.NewCollection[Content]()
+// Loads content partially into memory, reading only the YAML frontmatter.
+func LoadMetadata(contentDir string, path string) (Metadata, error) {
+	var (
+		metadata Metadata
+		err      error
+	)
 
-	seq, finish := util.WalkFiles(dir)
-	for path := range seq {
-		c, err := LoadFromMarkdown(dir, path)
-		if err != nil {
-			return collection, err
-		}
+	metadata.key = util.KeyFromPath(contentDir, path)
+	metadata.Path = path
 
-		collection.Add(c.key, c)
-	}
-
-	err := finish()
+	result, err := load.ReadFile[frontmatter](
+		path,
+		load.Opts{FrontmatterOnly: true},
+	)
 	if err != nil {
-		return collection, err
+		return metadata, err
 	}
 
-	return collection, nil
+	// Load frontmatter fields
+	metadata.Title = result.Frontmatter.Title
+	metadata.Description = result.Frontmatter.Description
+
+	metadata.Date, err = result.Frontmatter.ParsedDate()
+	if err != nil {
+		return metadata, fmt.Errorf(
+			"failed to parse frontmatter date in content file \"%s\": %w",
+			path,
+			err,
+		)
+	}
+
+	return metadata, nil
 }
