@@ -18,7 +18,7 @@ import (
 type Dot struct {
 	Config  *config.Config
 	Content *content.Corpus
-	Page    *site.Page
+	Page    *site.PageMetadata
 	Now     time.Time // Should be when the build started
 }
 

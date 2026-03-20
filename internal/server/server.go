@@ -23,7 +23,7 @@ func Run(logger *slog.Logger, basePath string, port int) error {
 		build.ContentDir,
 		build.LayoutsDir,
 		build.PartialsDir,
-		build.PagesDir,
+		build.SiteDir,
 	)
 	defer watcher.close_()
 

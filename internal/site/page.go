@@ -12,48 +12,68 @@ type frontmatter struct {
 	Layouts []string // Keys naming the layouts that should be used
 }
 
-// An HTML page in the site, possibly templated.
-type Page struct {
-	Key          string // unique id for the page
-	Path         string // path page was loaded from
-	TemplateText string
+// Metadata for a Michel page available on disk.
+type PageMetadata struct {
+	Key  string // unique id for the page
+	Path string // filepath for this file
 	// From frontmatter
 	Layouts []string
 }
 
-func LoadPage(dir string, path string) (Page, error) {
-	var (
-		page Page
-		err  error
-	)
+// A page fully loaded into memory.
+type Page struct {
+	PageMetadata
+	TemplateText string
+}
 
-	if !IsPage(path) {
-		panic("called LoadPage() on non-page path")
-	}
+// Load page fully.
+func (m PageMetadata) LoadPage() (Page, error) {
+	page := Page{PageMetadata: m}
 
-	page.Path = path
-
-	f, err := os.Open(page.Path)
+	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
 	if err != nil {
 		return page, err
 	}
-	defer f.Close()
-
-	page.Key = util.KeyFromPath(dir, page.Path)
-
-	result, err := load.ReadFile[frontmatter](page.Path, load.Opts{})
-	if err != nil {
-		return page, err
-	}
-
-	// Load frontmatter fields
-	page.Layouts = result.Frontmatter.Layouts
 
 	page.TemplateText = result.Text
 	return page, nil
 }
 
-func IsPage(path string) bool {
+func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
+	var (
+		metadata PageMetadata
+		err      error
+	)
+
+	if !isPagePath(path) {
+		panic("called LoadPageMetadata() on non-page path")
+	}
+
+	metadata.Path = path
+
+	f, err := os.Open(metadata.Path)
+	if err != nil {
+		return metadata, err
+	}
+	defer f.Close()
+
+	metadata.Key = util.KeyFromPath(dir, metadata.Path)
+
+	result, err := load.ReadFile[frontmatter](
+		metadata.Path,
+		load.Opts{FrontmatterOnly: true},
+	)
+	if err != nil {
+		return metadata, err
+	}
+
+	// Load frontmatter fields
+	metadata.Layouts = result.Frontmatter.Layouts
+
+	return metadata, nil
+}
+
+func isPagePath(path string) bool {
 	for _, ext := range []string{".html", ".tmpl", ".gohtml"} {
 		if strings.HasSuffix(path, ext) {
 			return true

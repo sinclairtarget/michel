@@ -1,20 +1,19 @@
 /*
 * Package build is responsible for coordinating the build.
 *
-* To build the site, we:
+* A build of the site proceeds as follows:
 * 	1. Load the Michel config.
-* 	2. Clean the target dir.
-* 	3. Load content corpus.
-* 	4. Load layouts.
-* 	5. Load partials.
-* 	6. For each page path:
-* 		 If it is a page (*.html, *.html.tmpl):
-* 	       a. Read YAML frontmatter
-* 	       b. Use layouts defined in frontmatter
-* 	       c. Load template
-* 	       d. ExecuteTemplate() with first layout
-* 	     Otherwise, it is an asset:
-* 	       Copy it to the target dir
+* 	2. Load site page and asset metadata. If there is none, quit here.
+* 	3. Clean the target dir.
+* 	4. Load content metadata.
+* 	5. Load layouts.
+* 	6. Load partials.
+* 	7. For each site page:
+* 	       a. Load page template
+* 	       b. Parse it
+* 	       c. ExecuteTemplate() with layouts defined in the page frontmatter
+* 	8. For each site asset:
+* 	     Copy it to the target dir
  */
 package build
 
@@ -30,13 +29,12 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/site"
-	"github.com/sinclairtarget/michel/internal/util"
 )
 
 // Input directories
 const (
 	ContentDir  string = "content"
-	PagesDir           = "site"
+	SiteDir            = "site"
 	LayoutsDir         = "layouts"
 	PartialsDir        = "partials"
 )
@@ -44,14 +42,42 @@ const (
 // Output directory
 const TargetDir string = "public"
 
+// Scope for a build.
+//
+// This is the relevant universe of inputs to a build.
+type scope struct {
+	config   config.Config
+	site     site.Site
+	corpus   content.Corpus
+	layouts  []Layout
+	partials []Partial
+	start    time.Time
+}
+
 func Build(logger *slog.Logger) error {
-	start := time.Now()
+	var (
+		scope scope
+		err   error
+	)
+
 	logger.Debug("beginning build")
+	scope.start = time.Now()
 
 	logger.Debug("loading config")
-	cfg, err := config.Load()
+	scope.config, err = config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %v", err)
+	}
+
+	logger.Debug("loading site metadata")
+	scope.site, err = site.LoadSite(SiteDir)
+	if err != nil {
+		return fmt.Errorf("failed to load site metadata: %v", err)
+	}
+
+	if scope.site.NumPages()+scope.site.NumAssets() == 0 {
+		logger.Debug("build done because site is empty")
+		return nil
 	}
 
 	logger.Debug("cleaning target directory")
@@ -60,82 +86,85 @@ func Build(logger *slog.Logger) error {
 		return fmt.Errorf("failed to clean target directory: %v", err)
 	}
 
-	logger.Debug("loading content")
-	corpus, err := content.LoadCorpus(ContentDir)
+	logger.Debug("loading content metadata")
+	scope.corpus, err = content.LoadCorpus(ContentDir)
+	if err != nil {
+		return fmt.Errorf("failed to load content metadata: %v", err)
+	}
 
 	logger.Debug("loading layouts")
-	layouts, err := loadLayouts(LayoutsDir)
+	scope.layouts, err = loadLayouts(LayoutsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load layouts: %w", err)
 	}
 
 	logger.Debug("loading partials")
-	partials, err := loadPartials(PartialsDir)
+	scope.partials, err = loadPartials(PartialsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load partials: %w", err)
 	}
 
-	partialsTmpl := template.New("root")
-	partialsTmpl, err = addPartials(partialsTmpl, partials)
+	rootTmpl := template.New("root")
+	rootTmpl, err = addPartials(rootTmpl, scope.partials)
 	if err != nil {
 		return fmt.Errorf("failed to parse partials: %w", err)
 	}
 
-	logger.Debug("processing pages and assets")
-	seq, finish := util.WalkFiles(PagesDir)
-	for path := range seq {
-		if site.IsPage(path) {
-			targetPath := mapPagePath(path, PagesDir, TargetDir)
-			logger.Debug(
-				"processing page",
-				"path",
-				path,
-				"targetPath",
-				targetPath,
+	logger.Debug("processing pages")
+	for page := range scope.site.Pages() {
+		targetPath := mapPagePath(page.Path, SiteDir, TargetDir)
+		logger.Debug(
+			"processing page",
+			"path",
+			page.Path,
+			"targetPath",
+			targetPath,
+		)
+		err = processPage(
+			page,
+			targetPath,
+			scope,
+			template.Must(rootTmpl.Clone()),
+		)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to process page \"%s\": %w",
+				page.Path,
+				err,
 			)
-			err = processPage(
-				path,
-				targetPath,
-				cfg,
-				corpus,
-				layouts,
-				template.Must(partialsTmpl.Clone()),
-				start,
-			)
-			if err != nil {
-				return fmt.Errorf(
-					"failed to process page \"%s\": %w",
-					path,
-					err,
-				)
-			}
-		} else {
-			targetPath := mapAssetPath(path, PagesDir, TargetDir)
-			logger.Debug(
-				"processing asset",
-				"path",
-				path,
-				"targetPath",
-				targetPath,
-			)
-			err = processAsset(path, targetPath)
-			if err != nil {
-				return fmt.Errorf(
-					"failed to process asset \"%s\": %w",
-					path,
-					err,
-				)
-			}
 		}
 	}
 
-	err = finish()
-	if err != nil {
-		return err
+	logger.Debug("processing assets")
+	for asset := range scope.site.Assets() {
+		targetPath := mapAssetPath(asset.Path, SiteDir, TargetDir)
+		logger.Debug(
+			"processing asset",
+			"path",
+			asset.Path,
+			"targetPath",
+			targetPath,
+		)
+		err = processAsset(asset, targetPath)
+		if err != nil {
+			return fmt.Errorf(
+				"failed to process asset \"%s\": %w",
+				asset.Path,
+				err,
+			)
+		}
 	}
 
-	elapsed := time.Now().Sub(start)
-	logger.Debug("build complete", "durationMs", elapsed.Milliseconds())
+	elapsed := time.Now().Sub(scope.start)
+	logger.Debug(
+		"build complete",
+		"durationMs",
+		elapsed.Milliseconds(),
+		"pages",
+		scope.site.NumPages(),
+		"assets",
+		scope.site.NumAssets(),
+	)
 	return nil
 }
 
@@ -149,30 +178,18 @@ func clean(dir string) error {
 }
 
 func processPage(
-	sourcePath string,
+	metadata site.PageMetadata,
 	targetPath string,
-	cfg config.Config,
-	corpus content.Corpus,
-	layouts []Layout,
-	partialsTmpl *template.Template,
-	now time.Time,
+	scope scope,
+	rootTmpl *template.Template,
 ) error {
-	page, err := site.LoadPage(PagesDir, sourcePath)
-	if err != nil {
-		return fmt.Errorf(
-			"failed to load page \"%s\": %w",
-			sourcePath,
-			err,
-		)
-	}
-
 	// Set up output file
-	err = os.MkdirAll(filepath.Dir(targetPath), 0o755)
+	err := os.MkdirAll(filepath.Dir(targetPath), 0o755)
 	if err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
 
-	f, err := os.Create(targetPath)
+	fout, err := os.Create(targetPath)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to create file at \"%s\": %w",
@@ -180,32 +197,37 @@ func processPage(
 			err,
 		)
 	}
-	defer f.Close()
+	defer fout.Close()
 
 	// Add layouts
-	layoutKeys := page.Layouts
-	tmpl, err := addLayouts(partialsTmpl, layouts, layoutKeys)
+	layoutKeys := metadata.Layouts
+	tmpl, err := addLayouts(rootTmpl, scope.layouts, layoutKeys)
 	if err != nil {
 		return err // TODO: Handle layout not found
 	}
 
 	// Parse page template
-	tmplName := filepath.Base(sourcePath)
+	tmplName := filepath.Base(metadata.Path)
 	tmpl = tmpl.New(tmplName)
 
 	dot := Dot{
-		Config:  &cfg,
-		Content: &corpus,
-		Page:    &page,
-		Now:     now,
+		Config:  &scope.config,
+		Content: &scope.corpus,
+		Page:    &metadata,
+		Now:     scope.start,
 	}
-	tmpl.Funcs(dot.FuncMap(tmpl, f))
+	tmpl.Funcs(dot.FuncMap(tmpl, fout))
+
+	page, err := metadata.LoadPage()
+	if err != nil {
+		return err
+	}
 
 	tmpl, err = tmpl.Parse(page.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",
-			sourcePath,
+			page.Path,
 			err,
 		)
 	}
@@ -221,7 +243,7 @@ func processPage(
 	}
 
 	tmpl = template.Must(tmpl.Clone())
-	err = tmpl.ExecuteTemplate(f, execName, dot)
+	err = tmpl.ExecuteTemplate(fout, execName, dot)
 	if err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
@@ -230,8 +252,8 @@ func processPage(
 }
 
 // Just copies file to output directory unmodified.
-func processAsset(sourcePath string, targetPath string) error {
-	source, err := os.Open(sourcePath)
+func processAsset(asset site.AssetMetadata, targetPath string) error {
+	source, err := os.Open(asset.Path)
 	if err != nil {
 		return err
 	}

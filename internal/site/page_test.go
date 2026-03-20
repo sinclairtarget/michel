@@ -35,30 +35,31 @@ layouts:
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	if !site.IsPage(filename) {
-		t.Fatalf("path \"%s\" should count as page path but did not", filename)
-	}
-
-	page, err := site.LoadPage(tmpdir, filename)
+	metadata, err := site.LoadPageMetadata(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
 
-	if page.Path != filename {
+	if metadata.Path != filename {
 		t.Errorf(
 			"page path incorrect; wanted \"%s\" but got \"%s\"",
 			filename,
-			page.Path,
+			metadata.Path,
 		)
 	}
 
 	expected := []string{"base", "blog"}
-	if !slices.Equal(page.Layouts, expected) {
+	if !slices.Equal(metadata.Layouts, expected) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
 			expected,
-			page.Layouts,
+			metadata.Layouts,
 		)
+	}
+
+	page, err := metadata.LoadPage()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	if page.TemplateText != templateText {
@@ -87,21 +88,26 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	page, err := site.LoadPage(tmpdir, filename)
+	metadata, err := site.LoadPageMetadata(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
 
-	if page.Path != filename {
+	if metadata.Path != filename {
 		t.Errorf(
 			"page path incorrect; wanted \"%s\" but got \"%s\"",
 			filename,
-			page.Path,
+			metadata.Path,
 		)
 	}
 
-	if len(page.Layouts) > 0 {
+	if len(metadata.Layouts) > 0 {
 		t.Error("page frontmatter layouts non-empty; wanted empty slice")
+	}
+
+	page, err := metadata.LoadPage()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	if page.TemplateText != fileContents {
