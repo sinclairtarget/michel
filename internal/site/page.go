@@ -1,6 +1,7 @@
 package site
 
 import (
+	"log/slog"
 	"os"
 	"strings"
 
@@ -27,6 +28,8 @@ type Page struct {
 }
 
 func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
+	slog.Debug("loading page from disk (metadata only)", "path", path)
+
 	var (
 		metadata PageMetadata
 		err      error
@@ -62,6 +65,8 @@ func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 
 // Load page fully.
 func LoadPage(m PageMetadata) (Page, error) {
+	slog.Debug("loading page from disk", "path", m.Path)
+
 	page := Page{PageMetadata: m}
 
 	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})

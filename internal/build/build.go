@@ -54,51 +54,51 @@ type scope struct {
 	start    time.Time
 }
 
-func Build(logger *slog.Logger) error {
+func Build() error {
 	var (
 		scope scope
 		err   error
 	)
 
-	logger.Debug("beginning build")
+	slog.Debug("beginning build")
 	scope.start = time.Now()
 
-	logger.Debug("loading config")
+	slog.Debug("loading config")
 	scope.config, err = config.Load()
 	if err != nil {
 		return fmt.Errorf("failed to load config: %v", err)
 	}
 
-	logger.Debug("loading site metadata")
+	slog.Debug("loading site metadata")
 	scope.site, err = site.LoadSite(SiteDir)
 	if err != nil {
 		return fmt.Errorf("failed to load site metadata: %v", err)
 	}
 
 	if scope.site.NumPages()+scope.site.NumAssets() == 0 {
-		logger.Debug("build done because site is empty")
+		slog.Debug("build done because site is empty")
 		return nil
 	}
 
-	logger.Debug("cleaning target directory")
+	slog.Debug("cleaning target directory")
 	err = clean(TargetDir)
 	if err != nil {
 		return fmt.Errorf("failed to clean target directory: %v", err)
 	}
 
-	logger.Debug("loading content metadata")
+	slog.Debug("loading content metadata")
 	scope.corpus, err = content.LoadCorpus(ContentDir)
 	if err != nil {
 		return fmt.Errorf("failed to load content metadata: %v", err)
 	}
 
-	logger.Debug("loading layouts")
+	slog.Debug("loading layouts")
 	scope.layouts, err = loadLayouts(LayoutsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load layouts: %w", err)
 	}
 
-	logger.Debug("loading partials")
+	slog.Debug("loading partials")
 	scope.partials, err = loadPartials(PartialsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load partials: %w", err)
@@ -110,10 +110,10 @@ func Build(logger *slog.Logger) error {
 		return fmt.Errorf("failed to parse partials: %w", err)
 	}
 
-	logger.Debug("processing pages")
+	slog.Debug("processing pages")
 	for page := range scope.site.Pages() {
 		targetPath := mapPagePath(page.Path, SiteDir, TargetDir)
-		logger.Debug(
+		slog.Debug(
 			"processing page",
 			"path",
 			page.Path,
@@ -135,10 +135,10 @@ func Build(logger *slog.Logger) error {
 		}
 	}
 
-	logger.Debug("processing assets")
+	slog.Debug("processing assets")
 	for asset := range scope.site.Assets() {
 		targetPath := mapAssetPath(asset.Path, SiteDir, TargetDir)
-		logger.Debug(
+		slog.Debug(
 			"processing asset",
 			"path",
 			asset.Path,
@@ -156,7 +156,7 @@ func Build(logger *slog.Logger) error {
 	}
 
 	elapsed := time.Now().Sub(scope.start)
-	logger.Debug(
+	slog.Debug(
 		"build complete",
 		"durationMs",
 		elapsed.Milliseconds(),

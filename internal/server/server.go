@@ -18,27 +18,27 @@ import (
 	"github.com/sinclairtarget/michel/internal/build"
 )
 
-func Run(logger *slog.Logger, basePath string, port int) error {
+func Run(basePath string, port int) error {
 	watcher := newWatcher(
 		build.ContentDir,
 		build.LayoutsDir,
 		build.PartialsDir,
 		build.SiteDir,
 	)
-	defer watcher.close_()
+	defer watcher.close()
 
 	// Goroutine to watch for changes.
 	// Triggers a full build for any change.
 	go func() {
 		for event := range watcher.events {
-			logger.Debug("got file modified event", "path", event.path)
-			rebuild(logger)
+			slog.Debug("got file modified event", "path", event.path)
+			rebuild()
 		}
 
-		logger.Debug("goroutine exiting; watch events channel closed")
+		slog.Debug("goroutine exiting; watch events channel closed")
 	}()
 
-	err := watcher.start(logger)
+	err := watcher.start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not start file watcher: %v", err)
 		os.Exit(1)
@@ -49,13 +49,13 @@ func Run(logger *slog.Logger, basePath string, port int) error {
 	addr := fmt.Sprintf(":%d", port)
 	return http.ListenAndServe(
 		addr,
-		logMiddleware(logger, http.FileServer(http.Dir(basePath)).ServeHTTP),
+		logMiddleware(http.FileServer(http.Dir(basePath)).ServeHTTP),
 	)
 }
 
-func rebuild(logger *slog.Logger) {
+func rebuild() {
 	start := time.Now()
-	err := build.Build(logger)
+	err := build.Build()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 	}
@@ -64,13 +64,13 @@ func rebuild(logger *slog.Logger) {
 	fmt.Printf("Site rebuilt in %dms.\n", elapsed.Milliseconds())
 }
 
-func logMiddleware(logger *slog.Logger, f http.HandlerFunc) http.HandlerFunc {
+func logMiddleware(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logRequest(logger, r)
+		logRequest(r)
 		f(w, r)
 	}
 }
 
-func logRequest(logger *slog.Logger, r *http.Request) {
-	logger.Info("http request", "method", r.Method, "url", r.URL)
+func logRequest(r *http.Request) {
+	slog.Info("http request", "method", r.Method, "url", r.URL)
 }

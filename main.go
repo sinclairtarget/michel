@@ -45,21 +45,20 @@ func main() {
 
 	mainFlagSet.Parse(os.Args[1:])
 
-	var logger *slog.Logger
 	if *verboseFlag {
-		logger = configureLogging(slog.LevelDebug)
+		configureLogging(slog.LevelDebug)
 	} else {
-		logger = configureLogging(slog.LevelInfo)
+		configureLogging(slog.LevelInfo)
 	}
 
 	subcommand := mainFlagSet.Arg(0)
 	switch subcommand {
 	case "build", "":
-		runBuild(logger)
+		runBuild()
 	case "config":
-		runConfig(logger)
+		runConfig()
 	case "serve":
-		runServer(logger)
+		runServer()
 	case "version":
 		fmt.Println(getVersionString())
 		fmt.Printf("libatrus: %s\n", atrus.Version())
@@ -82,7 +81,7 @@ func getVersionString() string {
 	return Version
 }
 
-func configureLogging(level slog.Level) *slog.Logger {
+func configureLogging(level slog.Level) {
 	handler := slog.NewTextHandler(
 		os.Stderr,
 		&slog.HandlerOptions{
@@ -92,19 +91,18 @@ func configureLogging(level slog.Level) *slog.Logger {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Debug("logging configured", "configuredLevel", level)
-	return logger
+	slog.Debug("logging configured", "configuredLevel", level)
 }
 
-func runBuild(logger *slog.Logger) {
-	err := build.Build(logger)
+func runBuild() {
+	err := build.Build()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func runConfig(logger *slog.Logger) {
+func runConfig() {
 	c, err := config.Load()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading config: %v\n", err)
@@ -115,15 +113,15 @@ func runConfig(logger *slog.Logger) {
 	fmt.Print(s)
 }
 
-func runServer(logger *slog.Logger) {
+func runServer() {
 	// Build before running server
-	err := build.Build(logger)
+	err := build.Build()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 		os.Exit(1)
 	}
 
 	// Run server
-	err = server.Run(logger, "./public", 8080)
+	err = server.Run("./public", 8080)
 	fmt.Fprintf(os.Stderr, "Server exited: %v\n", err)
 }

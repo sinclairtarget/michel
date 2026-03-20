@@ -3,6 +3,7 @@ package content
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/content/myst"
@@ -59,30 +60,10 @@ func (m Metadata) Key() string {
 	return m.key
 }
 
-// Loads and parses content.
-func LoadContent(m Metadata) (Content, error) {
-	content := Content{Metadata: m}
-
-	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
-	if err != nil {
-		return content, err
-	}
-
-	// Parse MyST
-	content.Root, err = myst.Parse(result.Text)
-	if err != nil {
-		return content, fmt.Errorf(
-			"failed to parse content file \"%s\": %w",
-			m.Path,
-			err,
-		)
-	}
-
-	return content, nil
-}
-
 // Loads content partially into memory, reading only the YAML frontmatter.
 func LoadMetadata(contentDir string, path string) (Metadata, error) {
+	slog.Debug("loading content from disk (metadata only)", "path", path)
+
 	var (
 		metadata Metadata
 		err      error
@@ -113,4 +94,28 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 	}
 
 	return metadata, nil
+}
+
+// Loads and parses content.
+func LoadContent(m Metadata) (Content, error) {
+	slog.Debug("loading content from disk", "path", m.Path)
+
+	content := Content{Metadata: m}
+
+	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
+	if err != nil {
+		return content, err
+	}
+
+	// Parse MyST
+	content.Root, err = myst.Parse(result.Text)
+	if err != nil {
+		return content, fmt.Errorf(
+			"failed to parse content file \"%s\": %w",
+			m.Path,
+			err,
+		)
+	}
+
+	return content, nil
 }

@@ -43,7 +43,7 @@ func newWatcher(dirs ...string) watcher {
 //
 // We debounce events to make sure we don't prematurely handle a change to a
 // file (e.g. by reacting to the first of several write events).
-func (w *watcher) start(logger *slog.Logger) error {
+func (w *watcher) start() error {
 	go func() {
 		timer := time.AfterFunc(math.MaxInt64, func() {})
 
@@ -56,9 +56,9 @@ func (w *watcher) start(logger *slog.Logger) error {
 					return
 				}
 
-				wrappedEv, err := w.handle(logger, ev)
+				wrappedEv, err := w.handle(ev)
 				if err != nil {
-					logger.Error("error handling fsnotify event", "error", err)
+					slog.Error("error handling fsnotify event", "error", err)
 					close(w.events)
 					return
 				}
@@ -75,7 +75,7 @@ func (w *watcher) start(logger *slog.Logger) error {
 					close(w.events)
 					return
 				}
-				logger.Error("fsnotify error", "error", err)
+				slog.Error("fsnotify error", "error", err)
 			case <-w.done:
 				timer.Stop()
 				close(w.events)
@@ -90,7 +90,7 @@ func (w *watcher) start(logger *slog.Logger) error {
 
 		// Dir will be a subdir of itself, so it gets added too
 		for subdir := range seq {
-			err := w.add(logger, subdir)
+			err := w.add(subdir)
 			if err != nil {
 				return err
 			}
@@ -108,11 +108,8 @@ func (w *watcher) start(logger *slog.Logger) error {
 // Logic for handling fsnotify events.
 //
 // Returns a nil event if the event should be ignored.
-func (w *watcher) handle(
-	logger *slog.Logger,
-	ev fsnotify.Event,
-) (*event, error) {
-	logger.Debug("fsnotify event", "event", ev)
+func (w *watcher) handle(ev fsnotify.Event) (*event, error) {
+	slog.Debug("fsnotify event", "event", ev)
 	if ev.Has(fsnotify.Chmod) {
 		return nil, nil
 	}
@@ -125,7 +122,7 @@ func (w *watcher) handle(
 
 		if isDir {
 			// A new directory! We want to watch it too
-			err := w.add(logger, ev.Name)
+			err := w.add(ev.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -137,7 +134,7 @@ func (w *watcher) handle(
 	}, nil
 }
 
-func (w *watcher) add(logger *slog.Logger, path string) error {
+func (w *watcher) add(path string) error {
 	// Not necessary for fsnotify, but it's nice to have the absolute path for
 	// logging.
 	absPath, err := filepath.Abs(path)
@@ -145,13 +142,13 @@ func (w *watcher) add(logger *slog.Logger, path string) error {
 		return err
 	}
 
-	logger.Debug("adding path to watch list", "filepath", absPath)
+	slog.Debug("adding path to watch list", "filepath", absPath)
 
 	err = w.watcher.Add(absPath)
 	return err
 }
 
-func (w *watcher) close_() {
+func (w *watcher) close() {
 	close(w.done)
 	w.watcher.Close()
 }
