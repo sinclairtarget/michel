@@ -1,11 +1,4 @@
 /*
-* Package template implements all templating functionality for pages.
-*
-* In Michel, all files under the site/ directory get copied into the output
-* directory during a build. Files that have an extension of .html, .tmpl, or
-* .gohtml are considered pages. (Files that do not are considered assets.) All
-* pages are run through the templating system.
-*
 * There are three kinds of templates in Michel:
 *
 *   1. Page templates (files under the site/ directory)
@@ -21,7 +14,7 @@
 * All Michel templates have access to certain Michel data structures exposed
 * via the '.' (dot).
  */
-package template
+package build
 
 import (
 	"fmt"
@@ -34,34 +27,34 @@ import (
 // A layout or a partial (collectively referred to as "stencils" for lack of a
 // better term).
 type stencil struct {
-	Key          string // unique id for layout
-	Path         string // path it was loaded from
-	TemplateText string
+	key          string // unique id for layout
+	path         string // path it was loaded from
+	templateText string
 }
 
 type Partial struct {
 	stencil
 }
 
-func (p Partial) TemplateName() string {
-	return TemplateName("partials", p.Key)
+func (p Partial) templateName() string {
+	return templateName("partials", p.key)
 }
 
 type Layout struct {
 	stencil
 }
 
-func (l Layout) TemplateName() string {
-	return TemplateName("layouts", l.Key)
+func (l Layout) templateName() string {
+	return templateName("layouts", l.key)
 }
 
 // Returns the namespaced key that will be used to identify the template in the
 // final template association / parse tree.
-func TemplateName(namespace string, key string) string {
+func templateName(namespace string, key string) string {
 	return namespace + "/" + key
 }
 
-func LoadPartials(dir string) ([]Partial, error) {
+func loadPartials(dir string) ([]Partial, error) {
 	partials := []Partial{}
 
 	stencils, err := loadStencils(dir)
@@ -75,7 +68,7 @@ func LoadPartials(dir string) ([]Partial, error) {
 	return partials, nil
 }
 
-func LoadLayouts(dir string) ([]Layout, error) {
+func loadLayouts(dir string) ([]Layout, error) {
 	layouts := []Layout{}
 
 	stencils, err := loadStencils(dir)
@@ -90,13 +83,13 @@ func LoadLayouts(dir string) ([]Layout, error) {
 }
 
 // Parse and add all partials to association.
-func AddPartials(
+func addPartials(
 	tmpl *template.Template,
 	partials []Partial,
 ) (*template.Template, error) {
 	for _, partial := range partials {
-		tmpl = tmpl.New(partial.TemplateName())
-		_, err := tmpl.Parse(partial.TemplateText)
+		tmpl = tmpl.New(partial.templateName())
+		_, err := tmpl.Parse(partial.templateText)
 		if err != nil {
 			return nil, err
 		}
@@ -106,14 +99,14 @@ func AddPartials(
 }
 
 // Parse and add named layouts to association.
-func AddLayouts(
+func addLayouts(
 	tmpl *template.Template,
 	layouts []Layout,
 	keys []string,
 ) (*template.Template, error) {
 	lookup := map[string]Layout{}
 	for _, layout := range layouts {
-		lookup[layout.Key] = layout
+		lookup[layout.key] = layout
 	}
 
 	for _, key := range keys {
@@ -122,8 +115,8 @@ func AddLayouts(
 			return nil, fmt.Errorf("layout \"%s\" not found", key)
 		}
 
-		tmpl = tmpl.New(layout.TemplateName())
-		_, err := tmpl.Parse(layout.TemplateText)
+		tmpl = tmpl.New(layout.templateName())
+		_, err := tmpl.Parse(layout.templateText)
 		if err != nil {
 			return nil, err
 		}
@@ -143,9 +136,9 @@ func loadStencils(dir string) ([]stencil, error) {
 		}
 
 		stencil := stencil{
-			Key:          util.KeyFromPath(dir, path),
-			Path:         path,
-			TemplateText: string(b),
+			key:          util.KeyFromPath(dir, path),
+			path:         path,
+			templateText: string(b),
 		}
 		stencils = append(stencils, stencil)
 	}

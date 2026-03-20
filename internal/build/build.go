@@ -30,7 +30,6 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/page"
-	mtemplate "github.com/sinclairtarget/michel/internal/template"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -65,19 +64,19 @@ func Build(logger *slog.Logger) error {
 	corpus, err := content.LoadCorpus(ContentDir)
 
 	logger.Debug("loading layouts")
-	layouts, err := mtemplate.LoadLayouts(LayoutsDir)
+	layouts, err := loadLayouts(LayoutsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load layouts: %w", err)
 	}
 
 	logger.Debug("loading partials")
-	partials, err := mtemplate.LoadPartials(PartialsDir)
+	partials, err := loadPartials(PartialsDir)
 	if err != nil {
 		return fmt.Errorf("failed to load partials: %w", err)
 	}
 
 	partialsTmpl := template.New("root")
-	partialsTmpl, err = mtemplate.AddPartials(partialsTmpl, partials)
+	partialsTmpl, err = addPartials(partialsTmpl, partials)
 	if err != nil {
 		return fmt.Errorf("failed to parse partials: %w", err)
 	}
@@ -154,11 +153,11 @@ func processPage(
 	targetPath string,
 	cfg config.Config,
 	corpus content.Corpus,
-	layouts []mtemplate.Layout,
+	layouts []Layout,
 	partialsTmpl *template.Template,
 	now time.Time,
 ) error {
-	p, err := page.LoadPage(PagesDir, sourcePath)
+	pg, err := page.LoadPage(PagesDir, sourcePath)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to load page \"%s\": %w",
@@ -184,8 +183,8 @@ func processPage(
 	defer f.Close()
 
 	// Add layouts
-	layoutKeys := p.Layouts
-	tmpl, err := mtemplate.AddLayouts(partialsTmpl, layouts, layoutKeys)
+	layoutKeys := pg.Layouts
+	tmpl, err := addLayouts(partialsTmpl, layouts, layoutKeys)
 	if err != nil {
 		return err // TODO: Handle layout not found
 	}
@@ -194,15 +193,15 @@ func processPage(
 	tmplName := filepath.Base(sourcePath)
 	tmpl = tmpl.New(tmplName)
 
-	dot := mtemplate.Dot{
+	dot := Dot{
 		Config:  &cfg,
 		Content: &corpus,
-		Page:    &p,
+		Page:    &pg,
 		Now:     now,
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, f))
 
-	tmpl, err = tmpl.Parse(p.TemplateText)
+	tmpl, err = tmpl.Parse(pg.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",
@@ -215,7 +214,7 @@ func processPage(
 	var execName string
 	if len(layoutKeys) > 0 {
 		// If we have layouts, we should start executing with the first one
-		execName = mtemplate.TemplateName("layouts", layoutKeys[0])
+		execName = templateName("layouts", layoutKeys[0])
 	} else {
 		// No layouts? Just execute the page template
 		execName = tmplName

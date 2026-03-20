@@ -1,4 +1,4 @@
-package template
+package build
 
 import (
 	"html/template"
@@ -38,6 +38,6 @@ func executePartial(
 	key string,
 	data any,
 ) error {
-	execName := TemplateName("partials", key)
+	execName := templateName("partials", key)
 	return tmpl.ExecuteTemplate(w, execName, data)
 }
