@@ -29,7 +29,7 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
-	"github.com/sinclairtarget/michel/internal/page"
+	"github.com/sinclairtarget/michel/internal/site"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -84,7 +84,7 @@ func Build(logger *slog.Logger) error {
 	logger.Debug("processing pages and assets")
 	seq, finish := util.WalkFiles(PagesDir)
 	for path := range seq {
-		if page.IsPage(path) {
+		if site.IsPage(path) {
 			targetPath := mapPagePath(path, PagesDir, TargetDir)
 			logger.Debug(
 				"processing page",
@@ -157,7 +157,7 @@ func processPage(
 	partialsTmpl *template.Template,
 	now time.Time,
 ) error {
-	pg, err := page.LoadPage(PagesDir, sourcePath)
+	page, err := site.LoadPage(PagesDir, sourcePath)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to load page \"%s\": %w",
@@ -183,7 +183,7 @@ func processPage(
 	defer f.Close()
 
 	// Add layouts
-	layoutKeys := pg.Layouts
+	layoutKeys := page.Layouts
 	tmpl, err := addLayouts(partialsTmpl, layouts, layoutKeys)
 	if err != nil {
 		return err // TODO: Handle layout not found
@@ -196,12 +196,12 @@ func processPage(
 	dot := Dot{
 		Config:  &cfg,
 		Content: &corpus,
-		Page:    &pg,
+		Page:    &page,
 		Now:     now,
 	}
 	tmpl.Funcs(dot.FuncMap(tmpl, f))
 
-	tmpl, err = tmpl.Parse(pg.TemplateText)
+	tmpl, err = tmpl.Parse(page.TemplateText)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",

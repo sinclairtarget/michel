@@ -1,4 +1,4 @@
-package page_test
+package site_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/sinclairtarget/michel/internal/page"
+	"github.com/sinclairtarget/michel/internal/site"
 )
 
 // We should be able to load a templated page from disk.
@@ -35,11 +35,11 @@ layouts:
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	if !page.IsPage(filename) {
+	if !site.IsPage(filename) {
 		t.Fatalf("path \"%s\" should count as page path but did not", filename)
 	}
 
-	page, err := page.LoadPage(tmpdir, filename)
+	page, err := site.LoadPage(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	page, err := page.LoadPage(tmpdir, filename)
+	page, err := site.LoadPage(tmpdir, filename)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
