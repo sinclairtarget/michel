@@ -5,13 +5,15 @@ import (
 )
 
 type AssetMetadata struct {
-	Key  string
+	key  string
 	Path string
 }
 
+func (m AssetMetadata) Key() string { return m.key }
+
 func NewAsset(dir string, path string) AssetMetadata {
 	return AssetMetadata{
-		Key:  util.KeyFromPath(dir, path),
+		key:  util.KeyFromPath(dir, path),
 		Path: path,
 	}
 }

@@ -1,14 +1,17 @@
 package build
 
 import (
+	"fmt"
 	"html/template"
 	"io"
+	"iter"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/site"
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 // Defines the data structures available for access via '.' in Michel
@@ -30,6 +33,8 @@ func (d Dot) FuncMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 		"partial": func(key string, data any) error {
 			return executePartial(tmpl, w, key, data)
 		},
+		"select": selectAny,
+		"reject": rejectAny,
 	}
 }
 
@@ -41,4 +46,56 @@ func executePartial(
 ) error {
 	execName := templateName("partials", key)
 	return tmpl.ExecuteTemplate(w, execName, data)
+}
+
+// Crimes against the type system to get "select" to work generically in a
+// template.
+func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
+	switch v := seq.(type) {
+	case iter.Seq[content.Content]:
+		return util.CoerceSeq[content.Content, util.Keyed](
+			util.Select[content.Content](v, pattern),
+		)
+	case iter.Seq[content.Metadata]:
+		return util.CoerceSeq[content.Metadata, util.Keyed](
+			util.Select[content.Metadata](v, pattern),
+		)
+	case iter.Seq[site.PageMetadata]:
+		return util.CoerceSeq[site.PageMetadata, util.Keyed](
+			util.Select[site.PageMetadata](v, pattern),
+		)
+	case iter.Seq[site.AssetMetadata]:
+		return util.CoerceSeq[site.AssetMetadata, util.Keyed](
+			util.Select[site.AssetMetadata](v, pattern),
+		)
+	default:
+		msg := fmt.Sprintf("select used with unknown type %T", v)
+		panic(msg)
+	}
+}
+
+// Crimes against the type system to get "reject" to work generically in a
+// template.
+func rejectAny(pattern string, seq any) iter.Seq[util.Keyed] {
+	switch v := seq.(type) {
+	case iter.Seq[content.Content]:
+		return util.CoerceSeq[content.Content, util.Keyed](
+			util.Reject[content.Content](v, pattern),
+		)
+	case iter.Seq[content.Metadata]:
+		return util.CoerceSeq[content.Metadata, util.Keyed](
+			util.Reject[content.Metadata](v, pattern),
+		)
+	case iter.Seq[site.PageMetadata]:
+		return util.CoerceSeq[site.PageMetadata, util.Keyed](
+			util.Reject[site.PageMetadata](v, pattern),
+		)
+	case iter.Seq[site.AssetMetadata]:
+		return util.CoerceSeq[site.AssetMetadata, util.Keyed](
+			util.Reject[site.AssetMetadata](v, pattern),
+		)
+	default:
+		msg := fmt.Sprintf("reject used with unknown type %T", v)
+		panic(msg)
+	}
 }

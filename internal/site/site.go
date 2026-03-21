@@ -26,10 +26,10 @@ func LoadSite(dir string) (Site, error) {
 				return site, err
 			}
 
-			site.pageMetadata[m.Key] = m
+			site.pageMetadata[m.Key()] = m
 		} else {
 			m := NewAsset(dir, path)
-			site.assetMetadata[m.Key] = m
+			site.assetMetadata[m.Key()] = m
 		}
 	}
 

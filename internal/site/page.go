@@ -15,11 +15,13 @@ type frontmatter struct {
 
 // Metadata for a Michel page available on disk.
 type PageMetadata struct {
-	Key  string // unique id for the page
+	key  string // unique id for the page
 	Path string // filepath for this file
 	// From frontmatter
 	Layouts []string
 }
+
+func (m PageMetadata) Key() string { return m.key }
 
 // A page fully loaded into memory.
 type Page struct {
@@ -47,7 +49,7 @@ func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 	}
 	defer f.Close()
 
-	metadata.Key = util.KeyFromPath(dir, metadata.Path)
+	metadata.key = util.KeyFromPath(dir, metadata.Path)
 
 	result, err := load.ReadFile[frontmatter](
 		metadata.Path,

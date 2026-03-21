@@ -50,14 +50,12 @@ type Metadata struct {
 	Date        time.Time
 }
 
+func (m Metadata) Key() string { return m.key }
+
 // Content fully loaded into memory and parsed.
 type Content struct {
 	Metadata
 	Root *myst.Node
-}
-
-func (m Metadata) Key() string {
-	return m.key
 }
 
 // Loads content partially into memory, reading only the YAML frontmatter.
