@@ -3,6 +3,7 @@ package myst
 
 import (
 	"fmt"
+	"html/template"
 
 	atrus "github.com/sinclairtarget/libatrus-go"
 )
@@ -21,11 +22,11 @@ func Parse(text string) (*Node, error) {
 }
 
 // Render MyST AST to HTML.
-func RenderHTML(node *Node) (string, error) {
+func RenderHTML(node *Node) (template.HTML, error) {
 	html, err := atrus.RenderHTML(&node.ASTNode)
 	if err != nil {
 		return "", fmt.Errorf("libatrus render error: %w", err)
 	}
 
-	return html, nil
+	return template.HTML(html), nil
 }

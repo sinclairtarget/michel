@@ -29,7 +29,7 @@ type Dot struct {
 // Defines the functions available in Michel templates.
 func (d Dot) FuncMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 	return template.FuncMap{
-		"html": myst.RenderHTML,
+		"render": myst.RenderHTML,
 		"partial": func(key string, data any) error {
 			return executePartial(tmpl, w, key, data)
 		},
@@ -52,6 +52,8 @@ func executePartial(
 // template.
 func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
+	case iter.Seq[util.Keyed]:
+		return v
 	case iter.Seq[content.Content]:
 		return util.CoerceSeq[content.Content, util.Keyed](
 			util.Select[content.Content](v, pattern),
@@ -78,6 +80,8 @@ func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 // template.
 func rejectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
+	case iter.Seq[util.Keyed]:
+		return v
 	case iter.Seq[content.Content]:
 		return util.CoerceSeq[content.Content, util.Keyed](
 			util.Reject[content.Content](v, pattern),

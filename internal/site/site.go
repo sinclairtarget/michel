@@ -1,6 +1,7 @@
 package site
 
 import (
+	"fmt"
 	"iter"
 	"maps"
 
@@ -39,6 +40,18 @@ func LoadSite(dir string) (Site, error) {
 	}
 
 	return site, nil
+}
+
+func (s Site) Get(key string) (PageMetadata, error) {
+	metadata, ok := s.pageMetadata[key]
+	if !ok {
+		return PageMetadata{}, fmt.Errorf(
+			"page with key \"%s\" not found",
+			key,
+		)
+	}
+
+	return metadata, nil
 }
 
 func (s Site) Pages() iter.Seq[PageMetadata] {

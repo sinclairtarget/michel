@@ -4,9 +4,25 @@ import (
 	"fmt"
 	"iter"
 	"maps"
+	"slices"
 
+	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/util"
 )
+
+type Entry struct {
+	Metadata
+	corpus *Corpus
+}
+
+func (e Entry) Root() (*myst.Node, error) {
+	content, err := e.corpus.Get(e.Key())
+	if err != nil {
+		return nil, err
+	}
+
+	return content.Root, nil
+}
 
 // Collection of content loaded from disk.
 //
@@ -16,33 +32,38 @@ import (
 // TODO: Cache the parsed MyST nodes so we don't have to re-read files, if this
 // reveals itself to be more performant.
 type Corpus struct {
-	metadata map[string]Metadata
+	entries map[string]Entry
 }
 
 // Loads all content metadata into memory.
 func LoadCorpus(dir string) (Corpus, error) {
-	metadata := map[string]Metadata{}
+	corpus := Corpus{
+		entries: map[string]Entry{},
+	}
 
 	seq, finish := util.WalkFiles(dir)
 	for path := range seq {
 		m, err := LoadMetadata(dir, path)
 		if err != nil {
-			return Corpus{metadata}, err
+			return corpus, err
 		}
 
-		metadata[m.key] = m
+		corpus.entries[m.key] = Entry{
+			Metadata: m,
+			corpus:   &corpus,
+		}
 	}
 
 	err := finish()
 	if err != nil {
-		return Corpus{metadata}, err
+		return corpus, err
 	}
 
-	return Corpus{metadata}, nil
+	return corpus, nil
 }
 
 func (c Corpus) Get(key string) (Content, error) {
-	metadata, ok := c.metadata[key]
+	entry, ok := c.entries[key]
 	if !ok {
 		return Content{}, fmt.Errorf(
 			"content with key \"%s\" not found",
@@ -50,7 +71,7 @@ func (c Corpus) Get(key string) (Content, error) {
 		)
 	}
 
-	content, err := LoadContent(metadata)
+	content, err := LoadContent(entry.Metadata)
 	if err != nil {
 		return content, err
 	}
@@ -61,25 +82,21 @@ func (c Corpus) Get(key string) (Content, error) {
 // Returns iterator over all content.
 //
 // This will load and parse markdown content for each content file.
-func (c Corpus) All() iter.Seq[Content] {
-	return func(yield func(Content) bool) {
-		for k, _ := range c.metadata {
-			content, err := c.Get(k)
-			if err != nil {
-				// This method is meant to be called within templates. A panic
-				// during template execution will return an error from
-				// tmpl.Execute().
-				panic(err)
-			}
-
-			if !yield(content) {
-				return
-			}
-		}
-	}
+func (c Corpus) All() iter.Seq[Entry] {
+	return maps.Values(c.entries)
 }
 
-// Returns iterator over all content metadata.
-func (c Corpus) Meta() iter.Seq[Metadata] {
-	return maps.Values(c.metadata)
+func (c Corpus) ByDate() iter.Seq[Entry] {
+	values := slices.Collect(maps.Values(c.entries))
+	slices.SortFunc(values, func(a, b Entry) int {
+		if a.Date.Before(b.Date) {
+			return -1
+		} else if a.Date.Equal(b.Date) {
+			return 0
+		} else {
+			return 1
+		}
+	})
+
+	return slices.Values(values)
 }
