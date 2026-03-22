@@ -7,29 +7,27 @@ Text (MyST)](https://mystmd.org/) and Go templating.
 ## Rationale
 ### Why MyST?
 MyST is a Markdown specification that adds several features useful for
-technical and scientific writing to CommonMark Markdown, including tables,
-footnotes, subscripts/superscripts, abbreviations,
-[admonitions](https://mystmd.org/spec/admonitions), asides, and more.
+technical and scientific writing to standard Markdown, including figures,
+tables, footnotes, subscripts/superscripts, abbreviations,
+[admonitions](https://mystmd.org/spec/admonitions), and more.
 
-MyST defines an abstract syntax tree format for parsed MyST documents. In
-Michel, this means that, at templating time, you have access to your parsed
-content as a tree of MyST Markdown nodes (rather than as a blob of
-already-rendered HTML).
+The MyST spec defines an abstract syntax tree for parsed MyST documents. This
+makes it possible for Michel to give you access to your parsed content as a
+tree of MyST nodes at templating time (rather than as a blob of
+already-rendered HTML). You can traverse and filter this tree to easily create
+article outlines, excerpts, or sidebars.
 
-MyST also defines a syntax for extending Markdown with custom "directives" and
-"roles," inspired by reStructuredText. Michel allows you to create plugins
-implementing your own directives and roles.
+MyST also defines a syntax for extensions with custom "directives" and "roles,"
+inspired by reStructuredText. Michel will eventually allow you to create
+plugins implementing your own directives and roles.
 
-### Why Minimal?
-Because Hugo is so big!
+### Why Go Templates?
+Michel is heavily inspired by [Hugo](https://gohugo.io/) and should feel
+somewhat similar to anybody that has used it.
 
-Michel is inspired by Hugo but aspires to be smaller and more easily
-understood. A major difference between Michel and Hugo is that Michel makes no
-assumptions about how your content maps to pages on your website. There are no
-implicit conventions or `_index.md` Markdown files. Each page in your final
-website corresponds to a template you have created yourself. Templates can
-embed zero, one, or many arbitrary content files by name. This requires more
-manual setup, but it's easy to understand and it puts the power in your hands!
+That said, Michel aspires to be much simpler than Hugo and will never have 
+as many features. Michel also takes a different, more explicit approach to
+mapping content to final pages in your website.
 
 ## Non-Features
 * Michel will never have built-in asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/), or use Michel as part of a larger build process.
