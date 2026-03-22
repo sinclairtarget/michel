@@ -35,24 +35,55 @@ layouts:
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	metadata, err := site.LoadPageMetadata(tmpdir, filename)
+	metadata, err := site.LoadPageMetadata(
+		tmpdir,
+		filename,
+		"https://foo.com/bar/",
+	)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
 
-	if metadata.Path != filename {
+	expected := "page"
+	if metadata.Key() != expected {
 		t.Errorf(
-			"page path incorrect; wanted \"%s\" but got \"%s\"",
-			filename,
-			metadata.Path,
+			"page key incorrect; wanted \"%s\" but got \"%s\"",
+			expected,
+			metadata.Key(),
 		)
 	}
 
-	expected := []string{"base", "blog"}
-	if !slices.Equal(metadata.Layouts, expected) {
+	if metadata.Filepath != filename {
+		t.Errorf(
+			"page path incorrect; wanted \"%s\" but got \"%s\"",
+			filename,
+			metadata.Filepath,
+		)
+	}
+
+	expected = "/bar/page.html"
+	if metadata.RelURL() != expected {
+		t.Errorf(
+			"page RelURL incorrect; wanted \"%s\" but got \"%s\"",
+			expected,
+			metadata.RelURL(),
+		)
+	}
+
+	expected = "https://foo.com/bar/page.html"
+	if metadata.AbsURL() != expected {
+		t.Errorf(
+			"page AbsURL incorrect; wanted \"%s\" but got \"%s\"",
+			expected,
+			metadata.AbsURL(),
+		)
+	}
+
+	expectedSlice := []string{"base", "blog"}
+	if !slices.Equal(metadata.Layouts, expectedSlice) {
 		t.Errorf(
 			"frontmatter layouts incorrect; wanted %v but got %v",
-			expected,
+			expectedSlice,
 			metadata.Layouts,
 		)
 	}
@@ -88,16 +119,20 @@ func TestLoadPageNoFrontmatter(t *testing.T) {
 		t.Fatalf("failed to write template to tmp dir: %v", err)
 	}
 
-	metadata, err := site.LoadPageMetadata(tmpdir, filename)
+	metadata, err := site.LoadPageMetadata(
+		tmpdir,
+		filename,
+		"https://foo.com/bar/",
+	)
 	if err != nil {
 		t.Fatalf("failed to load template: %v", err)
 	}
 
-	if metadata.Path != filename {
+	if metadata.Filepath != filename {
 		t.Errorf(
 			"page path incorrect; wanted \"%s\" but got \"%s\"",
 			filename,
-			metadata.Path,
+			metadata.Filepath,
 		)
 	}
 

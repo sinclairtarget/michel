@@ -5,6 +5,7 @@ import (
 	"iter"
 	"maps"
 
+	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -13,7 +14,7 @@ type Site struct {
 	assetMetadata map[string]AssetMetadata
 }
 
-func LoadSite(dir string) (Site, error) {
+func LoadSite(dir string, config config.Config) (Site, error) {
 	site := Site{
 		pageMetadata:  map[string]PageMetadata{},
 		assetMetadata: map[string]AssetMetadata{},
@@ -22,14 +23,14 @@ func LoadSite(dir string) (Site, error) {
 	seq, finish := util.WalkFiles(dir)
 	for path := range seq {
 		if isPagePath(path) {
-			m, err := LoadPageMetadata(dir, path)
+			m, err := LoadPageMetadata(dir, path, config.BaseURL)
 			if err != nil {
 				return site, err
 			}
 
 			site.pageMetadata[m.Key()] = m
 		} else {
-			m := NewAsset(dir, path)
+			m := NewAsset(dir, path, config.BaseURL)
 			site.assetMetadata[m.Key()] = m
 		}
 	}

@@ -70,7 +70,7 @@ func Build() error {
 	}
 
 	slog.Debug("loading site metadata")
-	scope.site, err = site.LoadSite(SiteDir)
+	scope.site, err = site.LoadSite(SiteDir, scope.config)
 	if err != nil {
 		return fmt.Errorf("failed to load site metadata: %v", err)
 	}
@@ -112,11 +112,11 @@ func Build() error {
 
 	slog.Debug("processing pages")
 	for page := range scope.site.Pages().All() {
-		targetPath := mapPagePath(page.Path, SiteDir, TargetDir)
+		targetPath := mapPage(page, TargetDir)
 		slog.Debug(
 			"processing page",
-			"path",
-			page.Path,
+			"key",
+			page.Key(),
 			"targetPath",
 			targetPath,
 		)
@@ -129,7 +129,7 @@ func Build() error {
 		if err != nil {
 			return fmt.Errorf(
 				"failed to process page \"%s\": %w",
-				page.Path,
+				page.Filepath,
 				err,
 			)
 		}
@@ -137,11 +137,11 @@ func Build() error {
 
 	slog.Debug("processing assets")
 	for asset := range scope.site.Assets().All() {
-		targetPath := mapAssetPath(asset.Path, SiteDir, TargetDir)
+		targetPath := mapAsset(asset, TargetDir)
 		slog.Debug(
 			"processing asset",
-			"path",
-			asset.Path,
+			"key",
+			asset.Key(),
 			"targetPath",
 			targetPath,
 		)
@@ -149,7 +149,7 @@ func Build() error {
 		if err != nil {
 			return fmt.Errorf(
 				"failed to process asset \"%s\": %w",
-				asset.Path,
+				asset.Filepath,
 				err,
 			)
 		}
@@ -207,7 +207,7 @@ func processPage(
 	}
 
 	// Parse page template
-	tmplName := filepath.Base(metadata.Path)
+	tmplName := filepath.Base(metadata.Filepath)
 	tmpl = tmpl.New(tmplName)
 
 	dot := Dot{
@@ -228,7 +228,7 @@ func processPage(
 	if err != nil {
 		return fmt.Errorf(
 			"failed to parse template \"%s\": %w",
-			page.Path,
+			page.Filepath,
 			err,
 		)
 	}
@@ -254,7 +254,7 @@ func processPage(
 
 // Just copies file to output directory unmodified.
 func processAsset(asset site.AssetMetadata, targetPath string) error {
-	source, err := os.Open(asset.Path)
+	source, err := os.Open(asset.Filepath)
 	if err != nil {
 		return err
 	}

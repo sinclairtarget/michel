@@ -17,6 +17,7 @@ const Filename string = "michel.yaml"
 type Config struct {
 	Title       string
 	Description string
+	BaseURL     string
 }
 
 // Returns the default config.
@@ -68,6 +69,9 @@ func Load() (Config, error) {
 	}
 	if loaded.Description != "" {
 		c.Description = loaded.Description
+	}
+	if loaded.BaseURL != "" {
+		c.BaseURL = loaded.BaseURL
 	}
 
 	return c, nil

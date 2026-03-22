@@ -15,13 +15,30 @@ type frontmatter struct {
 
 // Metadata for a Michel page available on disk.
 type PageMetadata struct {
-	key  string // unique id for the page
-	Path string // filepath for this file
+	key      string // unique id for the page
+	Filepath string // source filepath for this file
+	relURL   string
+	absURL   string
 	// From frontmatter
 	Layouts []string
 }
 
 func (m PageMetadata) Key() string { return m.key }
+
+func (m PageMetadata) RelURL() string { return m.relURL }
+
+func (m PageMetadata) AbsURL() string {
+	if m.absURL == "" {
+		slog.Warn(
+			"no AbsURL for page; did you configure baseURL?",
+			"key",
+			m.Key(),
+		)
+		return m.relURL
+	}
+
+	return m.absURL
+}
 
 // A page fully loaded into memory.
 type Page struct {
@@ -29,7 +46,11 @@ type Page struct {
 	TemplateText string
 }
 
-func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
+func LoadPageMetadata(
+	dir string,
+	path string,
+	baseURL string,
+) (PageMetadata, error) {
 	slog.Debug("loading page from disk (metadata only)", "path", path)
 
 	var (
@@ -41,18 +62,21 @@ func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 		panic("called LoadPageMetadata() on non-page path")
 	}
 
-	metadata.Path = path
+	metadata.key = util.KeyFromPath(dir, path)
+	metadata.Filepath = path
+	metadata.relURL = RelURL(metadata.key+".html", baseURL)
+	if baseURL != "" {
+		metadata.absURL = AbsURL(metadata.key+".html", baseURL)
+	}
 
-	f, err := os.Open(metadata.Path)
+	f, err := os.Open(metadata.Filepath)
 	if err != nil {
 		return metadata, err
 	}
 	defer f.Close()
 
-	metadata.key = util.KeyFromPath(dir, metadata.Path)
-
 	result, err := load.ReadFile[frontmatter](
-		metadata.Path,
+		metadata.Filepath,
 		load.Opts{FrontmatterOnly: true},
 	)
 	if err != nil {
@@ -67,11 +91,11 @@ func LoadPageMetadata(dir string, path string) (PageMetadata, error) {
 
 // Load page fully.
 func LoadPage(m PageMetadata) (Page, error) {
-	slog.Debug("loading page from disk", "path", m.Path)
+	slog.Debug("loading page from disk", "path", m.Filepath)
 
 	page := Page{PageMetadata: m}
 
-	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
+	result, err := load.ReadFile[frontmatter](m.Filepath, load.Opts{})
 	if err != nil {
 		return page, err
 	}

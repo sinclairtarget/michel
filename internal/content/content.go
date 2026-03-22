@@ -42,8 +42,8 @@ func (f frontmatter) ParsedDate() (time.Time, error) {
 
 // Metadata describing a piece of Michel content available on disk.
 type Metadata struct {
-	key  string // unique id for the content
-	Path string // filepath for this file
+	key      string // unique id for the content
+	Filepath string // source filepath for this file
 	// From frontmatter
 	Title       string
 	Description string
@@ -68,7 +68,7 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 	)
 
 	metadata.key = util.KeyFromPath(contentDir, path)
-	metadata.Path = path
+	metadata.Filepath = path
 
 	result, err := load.ReadFile[frontmatter](
 		path,
@@ -96,11 +96,11 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 
 // Loads and parses content.
 func LoadContent(m Metadata) (Content, error) {
-	slog.Debug("loading content from disk", "path", m.Path)
+	slog.Debug("loading content from disk", "path", m.Filepath)
 
 	content := Content{Metadata: m}
 
-	result, err := load.ReadFile[frontmatter](m.Path, load.Opts{})
+	result, err := load.ReadFile[frontmatter](m.Filepath, load.Opts{})
 	if err != nil {
 		return content, err
 	}
@@ -110,7 +110,7 @@ func LoadContent(m Metadata) (Content, error) {
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",
-			m.Path,
+			m.Filepath,
 			err,
 		)
 	}

@@ -33,11 +33,11 @@ Here is the second paragraph.
 		t.Fatalf("failed to load content: %v", err)
 	}
 
-	if m.Path != filename {
+	if m.Filepath != filename {
 		t.Errorf(
 			"content path incorrect; wanted %s, got %s",
 			filename,
-			m.Path,
+			m.Filepath,
 		)
 	}
 
