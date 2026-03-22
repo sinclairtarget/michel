@@ -87,8 +87,7 @@ func (c Corpus) All() iter.Seq[Entry] {
 }
 
 func (c Corpus) ByDate() iter.Seq[Entry] {
-	values := slices.Collect(maps.Values(c.entries))
-	slices.SortFunc(values, func(a, b Entry) int {
+	return c.sorted(func(a, b Entry) int {
 		if a.Date.Before(b.Date) {
 			return -1
 		} else if a.Date.Equal(b.Date) {
@@ -97,6 +96,22 @@ func (c Corpus) ByDate() iter.Seq[Entry] {
 			return 1
 		}
 	})
+}
 
+func (c Corpus) ByTitle() iter.Seq[Entry] {
+	return c.sorted(func(a, b Entry) int {
+		if a.Title < b.Title {
+			return -1
+		} else if a.Title == b.Title {
+			return 0
+		} else {
+			return 1
+		}
+	})
+}
+
+func (c Corpus) sorted(sortFunc func(Entry, Entry) int) iter.Seq[Entry] {
+	values := slices.Collect(maps.Values(c.entries))
+	slices.SortFunc(values, sortFunc)
 	return slices.Values(values)
 }
