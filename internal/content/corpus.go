@@ -3,6 +3,7 @@ package content
 import (
 	"fmt"
 	"iter"
+	"log/slog"
 	"maps"
 	"slices"
 
@@ -33,12 +34,14 @@ func (e Entry) Root() (*myst.Node, error) {
 // reveals itself to be more performant.
 type Corpus struct {
 	entries map[string]Entry
+	used    map[string]bool // content that has been fully loaded via Get()
 }
 
 // Loads all content metadata into memory.
 func LoadCorpus(dir string) (Corpus, error) {
 	corpus := Corpus{
 		entries: map[string]Entry{},
+		used:    map[string]bool{},
 	}
 
 	seq, finish := util.WalkFiles(dir)
@@ -70,6 +73,9 @@ func (c Corpus) Get(key string) (Content, error) {
 			key,
 		)
 	}
+
+	// Record that we used this content file
+	c.used[key] = true
 
 	content, err := LoadContent(entry.Metadata)
 	if err != nil {
@@ -114,4 +120,15 @@ func (c Corpus) sorted(sortFunc func(Entry, Entry) int) iter.Seq[Entry] {
 	values := slices.Collect(maps.Values(c.entries))
 	slices.SortFunc(values, sortFunc)
 	return slices.Values(values)
+}
+
+// This is a function rather than a method so it can't be called by users
+// within templates.
+func ReportUnused(c Corpus) {
+	for entry := range c.All() {
+		_, ok := c.used[entry.Key()]
+		if !ok {
+			slog.Warn("unused content", "path", entry.Filepath)
+		}
+	}
 }

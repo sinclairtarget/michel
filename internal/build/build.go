@@ -14,6 +14,7 @@
 * 	       c. ExecuteTemplate() with layouts defined in the page frontmatter
 * 	8. For each site asset:
 * 	     Copy it to the target dir
+* 	9. Warn about content that wasn't rendered in any template.
  */
 package build
 
@@ -154,6 +155,8 @@ func Build() error {
 			)
 		}
 	}
+
+	content.ReportUnused(scope.corpus)
 
 	elapsed := time.Now().Sub(scope.start)
 	slog.Debug(
