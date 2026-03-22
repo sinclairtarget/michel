@@ -83,7 +83,7 @@ func loadLayouts(dir string) ([]Layout, error) {
 }
 
 // Parse and add all partials to association.
-func addPartials(
+func parsePartials(
 	tmpl *template.Template,
 	partials []Partial,
 ) (*template.Template, error) {
@@ -99,7 +99,7 @@ func addPartials(
 }
 
 // Parse and add named layouts to association.
-func addLayouts(
+func parseLayouts(
 	tmpl *template.Template,
 	layouts []Layout,
 	keys []string,

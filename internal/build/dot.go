@@ -28,9 +28,9 @@ type Dot struct {
 }
 
 // Defines the functions available in Michel templates.
-func (d Dot) FuncMap(tmpl *template.Template, w io.Writer) template.FuncMap {
+func (_ Dot) funcMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 	return template.FuncMap{
-		"render": myst.RenderHTML,
+		"renderHTML": myst.RenderHTML,
 		"partial": func(key string, data any) error {
 			return executePartial(tmpl, w, key, data)
 		},

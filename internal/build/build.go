@@ -105,12 +105,6 @@ func Build() error {
 		return fmt.Errorf("failed to load partials: %w", err)
 	}
 
-	rootTmpl := template.New("root")
-	rootTmpl, err = addPartials(rootTmpl, scope.partials)
-	if err != nil {
-		return fmt.Errorf("failed to parse partials: %w", err)
-	}
-
 	slog.Debug("processing pages")
 	for page := range scope.site.Pages().All() {
 		targetPath := mapPage(page, TargetDir)
@@ -121,12 +115,7 @@ func Build() error {
 			"targetPath",
 			targetPath,
 		)
-		err = processPage(
-			page,
-			targetPath,
-			scope,
-			template.Must(rootTmpl.Clone()),
-		)
+		err = processPage(page, targetPath, scope)
 		if err != nil {
 			return fmt.Errorf(
 				"failed to process page \"%s\": %w",
@@ -184,7 +173,6 @@ func processPage(
 	metadata site.PageMetadata,
 	targetPath string,
 	scope scope,
-	rootTmpl *template.Template,
 ) error {
 	// Set up output file
 	err := os.MkdirAll(filepath.Dir(targetPath), 0o755)
@@ -202,16 +190,8 @@ func processPage(
 	}
 	defer fout.Close()
 
-	// Add layouts
-	layoutKeys := metadata.Layouts
-	tmpl, err := addLayouts(rootTmpl, scope.layouts, layoutKeys)
-	if err != nil {
-		return err // TODO: Handle layout not found
-	}
-
-	// Parse page template
-	tmplName := filepath.Base(metadata.Filepath)
-	tmpl = tmpl.New(tmplName)
+	// Set up root template and dot
+	rootTmpl := template.New("root")
 
 	dot := Dot{
 		Config:  scope.config,
@@ -220,7 +200,24 @@ func processPage(
 		Page:    metadata,
 		Now:     scope.start,
 	}
-	tmpl.Funcs(dot.FuncMap(tmpl, fout))
+	rootTmpl.Funcs(dot.funcMap(rootTmpl, fout))
+
+	// Parse and add partials
+	rootTmpl, err = parsePartials(rootTmpl, scope.partials)
+	if err != nil {
+		return fmt.Errorf("failed to parse partials: %w", err)
+	}
+
+	// Parse and add layouts
+	layoutKeys := metadata.Layouts
+	tmpl, err := parseLayouts(rootTmpl, scope.layouts, layoutKeys)
+	if err != nil {
+		return err // TODO: Handle layout not found
+	}
+
+	// Parse page template
+	tmplName := filepath.Base(metadata.Filepath)
+	tmpl = tmpl.New(tmplName)
 
 	page, err := site.LoadPage(metadata)
 	if err != nil {
