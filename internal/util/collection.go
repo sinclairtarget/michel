@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"iter"
 	"regexp"
 	"strings"
@@ -16,7 +17,17 @@ const globPattern string = `.+`
 // given glob pattern.
 //
 // The glob is just a wildcard matching one or more arbitrary characters.
-func Select[T Keyed](seq iter.Seq[T], pattern string) iter.Seq[T] {
+func Select[T Keyed](
+	seq iter.Seq[T],
+	field string,
+	pattern string,
+) iter.Seq[T] {
+	field = strings.ToLower(field)
+	if field != "key" {
+		msg := fmt.Sprintf("unsupported field \"%s\" in select", field)
+		panic(msg)
+	}
+
 	re := compileGlobRegex(pattern)
 	return func(yield func(T) bool) {
 		for elem := range seq {
@@ -34,7 +45,17 @@ func Select[T Keyed](seq iter.Seq[T], pattern string) iter.Seq[T] {
 // the given glob pattern.
 //
 // The glob is just a wildcard matching one or more arbitrary characters.
-func Reject[T Keyed](seq iter.Seq[T], pattern string) iter.Seq[T] {
+func Reject[T Keyed](
+	seq iter.Seq[T],
+	field string,
+	pattern string,
+) iter.Seq[T] {
+	field = strings.ToLower(field)
+	if field != "key" {
+		msg := fmt.Sprintf("unsupported field \"%s\" in reject", field)
+		panic(msg)
+	}
+
 	re := compileGlobRegex(pattern)
 	return func(yield func(T) bool) {
 		for elem := range seq {

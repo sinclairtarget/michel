@@ -29,7 +29,7 @@ func TestSelect(t *testing.T) {
 	}
 
 	got := []string{}
-	for elem := range util.Select(slices.Values(elements), "blog/*") {
+	for elem := range util.Select(slices.Values(elements), "key", "blog/*") {
 		got = append(got, elem.Key())
 	}
 
@@ -56,7 +56,7 @@ func TestReject(t *testing.T) {
 	}
 
 	got := []string{}
-	for elem := range util.Reject(slices.Values(elements), "*/foo.md") {
+	for elem := range util.Reject(slices.Values(elements), "key", "*/foo.md") {
 		got = append(got, elem.Key())
 	}
 
@@ -83,7 +83,8 @@ func TestSelectReject(t *testing.T) {
 
 	got := []string{}
 	for elem := range util.Reject(
-		util.Select(slices.Values(elements), "blog/*"),
+		util.Select(slices.Values(elements), "key", "blog/*"),
+		"key",
 		"blog/intro.md",
 	) {
 		got = append(got, elem.Key())

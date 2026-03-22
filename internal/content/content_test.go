@@ -90,7 +90,7 @@ Here is the second paragraph.
 	if err != nil {
 		t.Errorf("failed to render to HTML: %v", err)
 	}
-	if output != expectedHtml {
+	if string(output) != expectedHtml {
 		t.Errorf(
 			"html incorrect; wanted:\n%s\ngot:\n%s\n",
 			expectedHtml,

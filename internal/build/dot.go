@@ -51,21 +51,21 @@ func executePartial(
 	return tmpl.ExecuteTemplate(w, execName, data)
 }
 
-func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
+func selectAny(field string, pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
 	case iter.Seq[util.Keyed]:
-		return util.Select(v, pattern)
+		return util.Select(v, field, pattern)
 	case iter.Seq[content.Entry]:
 		return util.CoerceSeq[content.Entry, util.Keyed](
-			util.Select[content.Entry](v, pattern),
+			util.Select[content.Entry](v, field, pattern),
 		)
 	case iter.Seq[site.PageMetadata]:
 		return util.CoerceSeq[site.PageMetadata, util.Keyed](
-			util.Select[site.PageMetadata](v, pattern),
+			util.Select[site.PageMetadata](v, field, pattern),
 		)
 	case iter.Seq[site.AssetMetadata]:
 		return util.CoerceSeq[site.AssetMetadata, util.Keyed](
-			util.Select[site.AssetMetadata](v, pattern),
+			util.Select[site.AssetMetadata](v, field, pattern),
 		)
 	default:
 		msg := fmt.Sprintf("select used with unknown type %T", v)
@@ -73,21 +73,21 @@ func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	}
 }
 
-func rejectAny(pattern string, seq any) iter.Seq[util.Keyed] {
+func rejectAny(field string, pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
 	case iter.Seq[util.Keyed]:
-		return util.Reject(v, pattern)
+		return util.Reject(v, field, pattern)
 	case iter.Seq[content.Entry]:
 		return util.CoerceSeq[content.Entry, util.Keyed](
-			util.Reject[content.Entry](v, pattern),
+			util.Reject[content.Entry](v, field, pattern),
 		)
 	case iter.Seq[site.PageMetadata]:
 		return util.CoerceSeq[site.PageMetadata, util.Keyed](
-			util.Reject[site.PageMetadata](v, pattern),
+			util.Reject[site.PageMetadata](v, field, pattern),
 		)
 	case iter.Seq[site.AssetMetadata]:
 		return util.CoerceSeq[site.AssetMetadata, util.Keyed](
-			util.Reject[site.AssetMetadata](v, pattern),
+			util.Reject[site.AssetMetadata](v, field, pattern),
 		)
 	default:
 		msg := fmt.Sprintf("reject used with unknown type %T", v)
