@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"io"
 	"iter"
+	"slices"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/config"
@@ -33,8 +34,10 @@ func (d Dot) FuncMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 		"partial": func(key string, data any) error {
 			return executePartial(tmpl, w, key, data)
 		},
-		"select": selectAny,
-		"reject": rejectAny,
+		"select":  selectAny,
+		"reject":  rejectAny,
+		"collect": collectAny,
+		"reverse": reverseAny,
 	}
 }
 
@@ -48,19 +51,13 @@ func executePartial(
 	return tmpl.ExecuteTemplate(w, execName, data)
 }
 
-// Crimes against the type system to get "select" to work generically in a
-// template.
 func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
 	case iter.Seq[util.Keyed]:
-		return v
-	case iter.Seq[content.Content]:
-		return util.CoerceSeq[content.Content, util.Keyed](
-			util.Select[content.Content](v, pattern),
-		)
-	case iter.Seq[content.Metadata]:
-		return util.CoerceSeq[content.Metadata, util.Keyed](
-			util.Select[content.Metadata](v, pattern),
+		return util.Select(v, pattern)
+	case iter.Seq[content.Entry]:
+		return util.CoerceSeq[content.Entry, util.Keyed](
+			util.Select[content.Entry](v, pattern),
 		)
 	case iter.Seq[site.PageMetadata]:
 		return util.CoerceSeq[site.PageMetadata, util.Keyed](
@@ -76,19 +73,13 @@ func selectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	}
 }
 
-// Crimes against the type system to get "reject" to work generically in a
-// template.
 func rejectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	switch v := seq.(type) {
 	case iter.Seq[util.Keyed]:
-		return v
-	case iter.Seq[content.Content]:
-		return util.CoerceSeq[content.Content, util.Keyed](
-			util.Reject[content.Content](v, pattern),
-		)
-	case iter.Seq[content.Metadata]:
-		return util.CoerceSeq[content.Metadata, util.Keyed](
-			util.Reject[content.Metadata](v, pattern),
+		return util.Reject(v, pattern)
+	case iter.Seq[content.Entry]:
+		return util.CoerceSeq[content.Entry, util.Keyed](
+			util.Reject[content.Entry](v, pattern),
 		)
 	case iter.Seq[site.PageMetadata]:
 		return util.CoerceSeq[site.PageMetadata, util.Keyed](
@@ -101,5 +92,37 @@ func rejectAny(pattern string, seq any) iter.Seq[util.Keyed] {
 	default:
 		msg := fmt.Sprintf("reject used with unknown type %T", v)
 		panic(msg)
+	}
+}
+
+func collectAny(seq any) []util.Keyed {
+	switch v := seq.(type) {
+	case iter.Seq[util.Keyed]:
+		return slices.Collect(v)
+	case iter.Seq[content.Entry]:
+		return slices.Collect(
+			util.CoerceSeq[content.Entry, util.Keyed](v),
+		)
+	case iter.Seq[site.PageMetadata]:
+		return slices.Collect(
+			util.CoerceSeq[site.PageMetadata, util.Keyed](v),
+		)
+	case iter.Seq[site.AssetMetadata]:
+		return slices.Collect(
+			util.CoerceSeq[site.AssetMetadata, util.Keyed](v),
+		)
+	default:
+		msg := fmt.Sprintf("collect used with unknown type %T", v)
+		panic(msg)
+	}
+}
+
+func reverseAny(seq any) iter.Seq[util.Keyed] {
+	return func(yield func(util.Keyed) bool) {
+		for _, elem := range slices.Backward(collectAny(seq)) {
+			if !yield(elem) {
+				return
+			}
+		}
 	}
 }
