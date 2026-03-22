@@ -23,11 +23,11 @@ plugins implementing your own directives and roles.
 
 ### Why Go Templates?
 Michel is heavily inspired by [Hugo](https://gohugo.io/) and should feel
-somewhat similar to anybody that has used it.
+familiar to Hugo users.
 
-That said, Michel aspires to be much simpler than Hugo and will never have 
-as many features. Michel also takes a different, more explicit approach to
-mapping content to final pages in your website.
+That said, Michel aims to be simpler than Hugo and will never have as many
+features. Michel also takes a different, more explicit approach to mapping
+content to final pages in your website.
 
 ## Non-Features
 * Michel will never have built-in asset pipelines. [Just use CSS](https://lyra.horse/blog/2025/08/you-dont-need-js/), or use Michel as part of a larger build process.
