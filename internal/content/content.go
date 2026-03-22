@@ -4,6 +4,7 @@ package content
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/sinclairtarget/michel/internal/content/myst"
@@ -51,6 +52,24 @@ type Metadata struct {
 }
 
 func (m Metadata) Key() string { return m.key }
+
+// Slugifies the title and returns it.
+//
+// Returns an error if the title is an empty string.
+//
+// TODO: Improve this.
+func (m Metadata) Slug() (string, error) {
+	if m.Title == "" {
+		return "", fmt.Errorf(
+			"cannot slugify without title for content \"%s\"",
+			m.Key(),
+		)
+	}
+
+	lowered := strings.ToLower(m.Title)
+	hyphenated := strings.ReplaceAll(lowered, " ", "-")
+	return hyphenated, nil
+}
 
 // Content fully loaded into memory and parsed.
 type Content struct {
