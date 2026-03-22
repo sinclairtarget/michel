@@ -1,7 +1,7 @@
 # Michel
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
-Michel is a minimal static site generator based on [Markedly Structured
+Michel is a static site generator built on [Markedly Structured
 Text (MyST)](https://mystmd.org/) and Go templating.
 
 ## Rationale
