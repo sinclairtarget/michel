@@ -42,24 +42,10 @@ func LoadSite(dir string) (Site, error) {
 	return site, nil
 }
 
-func (s Site) Get(key string) (PageMetadata, error) {
-	metadata, ok := s.pageMetadata[key]
-	if !ok {
-		return PageMetadata{}, fmt.Errorf(
-			"page with key \"%s\" not found",
-			key,
-		)
-	}
-
-	return metadata, nil
-}
-
-func (s Site) Pages() iter.Seq[PageMetadata] {
-	return maps.Values(s.pageMetadata)
-}
-
-func (s Site) Assets() iter.Seq[AssetMetadata] {
-	return maps.Values(s.assetMetadata)
+// Makes calling Site.Pages.Get or Site.Assets.Get possible in templates.
+type Shim[T any] struct {
+	metadata   map[string]T
+	collection string // for error messages
 }
 
 func (s Site) NumPages() int {
@@ -68,4 +54,35 @@ func (s Site) NumPages() int {
 
 func (s Site) NumAssets() int {
 	return len(s.assetMetadata)
+}
+
+func (s Site) Pages() Shim[PageMetadata] {
+	return Shim[PageMetadata]{
+		metadata:   s.pageMetadata,
+		collection: "page",
+	}
+}
+
+func (s Site) Assets() Shim[AssetMetadata] {
+	return Shim[AssetMetadata]{
+		metadata:   s.assetMetadata,
+		collection: "asset",
+	}
+}
+
+func (s Shim[T]) Get(key string) (T, error) {
+	metadata, ok := s.metadata[key]
+	if !ok {
+		return metadata, fmt.Errorf(
+			"%s with key \"%s\" not found",
+			s.collection,
+			key,
+		)
+	}
+
+	return metadata, nil
+}
+
+func (s Shim[T]) All() iter.Seq[T] {
+	return maps.Values(s.metadata)
 }

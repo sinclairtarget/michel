@@ -111,7 +111,7 @@ func Build() error {
 	}
 
 	slog.Debug("processing pages")
-	for page := range scope.site.Pages() {
+	for page := range scope.site.Pages().All() {
 		targetPath := mapPagePath(page.Path, SiteDir, TargetDir)
 		slog.Debug(
 			"processing page",
@@ -136,7 +136,7 @@ func Build() error {
 	}
 
 	slog.Debug("processing assets")
-	for asset := range scope.site.Assets() {
+	for asset := range scope.site.Assets().All() {
 		targetPath := mapAssetPath(asset.Path, SiteDir, TargetDir)
 		slog.Debug(
 			"processing asset",
