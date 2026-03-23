@@ -1,13 +1,14 @@
 package content
 
 import (
-	"fmt"
+	"errors"
 	"iter"
 	"log/slog"
 	"maps"
 	"slices"
 
 	"github.com/sinclairtarget/michel/internal/content/myst"
+	"github.com/sinclairtarget/michel/internal/merrors"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -68,10 +69,10 @@ func LoadCorpus(dir string) (Corpus, error) {
 func (c Corpus) Get(key string) (Content, error) {
 	entry, ok := c.entries[key]
 	if !ok {
-		return Content{}, fmt.Errorf(
-			"content with key \"%s\" not found",
-			key,
-		)
+		return Content{}, &merrors.KeyNotFoundError{
+			Key:  key,
+			Type: "content",
+		}
 	}
 
 	// Record that we used this content file
@@ -83,6 +84,20 @@ func (c Corpus) Get(key string) (Content, error) {
 	}
 
 	return content, nil
+}
+
+func (c Corpus) TryGet(key string) (*Content, error) {
+	content, err := c.Get(key)
+	if err != nil {
+		var keyerr *merrors.KeyNotFoundError
+		if errors.As(err, &keyerr) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &content, nil
 }
 
 // Returns iterator over all content.

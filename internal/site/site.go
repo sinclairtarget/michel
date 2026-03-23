@@ -1,11 +1,12 @@
 package site
 
 import (
-	"fmt"
+	"errors"
 	"iter"
 	"maps"
 
 	"github.com/sinclairtarget/michel/internal/config"
+	"github.com/sinclairtarget/michel/internal/merrors"
 	"github.com/sinclairtarget/michel/internal/util"
 )
 
@@ -74,14 +75,27 @@ func (s Site) Assets() Shim[AssetMetadata] {
 func (s Shim[T]) Get(key string) (T, error) {
 	metadata, ok := s.metadata[key]
 	if !ok {
-		return metadata, fmt.Errorf(
-			"%s with key \"%s\" not found",
-			s.collection,
-			key,
-		)
+		return metadata, &merrors.KeyNotFoundError{
+			Key:  key,
+			Type: s.collection,
+		}
 	}
 
 	return metadata, nil
+}
+
+func (s Shim[T]) TryGet(key string) (*T, error) {
+	metadata, err := s.Get(key)
+	if err != nil {
+		var keyerr *merrors.KeyNotFoundError
+		if errors.As(err, &keyerr) {
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &metadata, nil
 }
 
 func (s Shim[T]) All() iter.Seq[T] {
