@@ -57,7 +57,7 @@ func rebuild() {
 	start := time.Now()
 	err := build.Build()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
+		build.PrintBuildError(err)
 	}
 
 	elapsed := time.Now().Sub(start)

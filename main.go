@@ -97,7 +97,7 @@ func configureLogging(level slog.Level) {
 func runBuild() {
 	err := build.Build()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
+		build.PrintBuildError(err)
 		os.Exit(1)
 	}
 }
@@ -117,7 +117,7 @@ func runServer() {
 	// Build before running server
 	err := build.Build()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
+		build.PrintBuildError(err)
 		os.Exit(1)
 	}
 
