@@ -28,7 +28,7 @@ type Dot struct {
 }
 
 // Defines the functions available in Michel templates.
-func (_ Dot) funcMap(tmpl *template.Template, w io.Writer) template.FuncMap {
+func (d Dot) funcMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 	return template.FuncMap{
 		"renderHTML": myst.RenderHTML,
 		"partial": func(key string, data any) error {
@@ -38,6 +38,12 @@ func (_ Dot) funcMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 		"reject":  rejectAny,
 		"collect": collectAny,
 		"reverse": reverseAny,
+		"relURL": func(suffix string) string {
+			return site.RelURL(suffix, d.Config.BaseURL)
+		},
+		"absURL": func(suffix string) string {
+			return site.AbsURL(suffix, d.Config.BaseURL)
+		},
 	}
 }
 

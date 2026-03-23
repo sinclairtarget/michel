@@ -4,6 +4,7 @@ package content
 import (
 	"fmt"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 
@@ -57,7 +58,7 @@ func (m Metadata) Key() string { return m.key }
 //
 // Returns an error if the title is an empty string.
 //
-// TODO: Improve this.
+// TODO: Improve this. Match Hugo behavior.
 func (m Metadata) Slug() (string, error) {
 	if m.Title == "" {
 		return "", fmt.Errorf(
@@ -67,7 +68,10 @@ func (m Metadata) Slug() (string, error) {
 	}
 
 	lowered := strings.ToLower(m.Title)
-	hyphenated := strings.ReplaceAll(lowered, " ", "-")
+
+	punct := regexp.MustCompile(`[!?'"]+`)
+	unpunctuated := punct.ReplaceAllString(lowered, "")
+	hyphenated := strings.ReplaceAll(unpunctuated, " ", "-")
 	return hyphenated, nil
 }
 
