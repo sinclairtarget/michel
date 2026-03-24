@@ -31,6 +31,7 @@ type Dot struct {
 func (d Dot) funcMap(tmpl *template.Template, w io.Writer) template.FuncMap {
 	return template.FuncMap{
 		"renderHTML": myst.RenderHTML,
+		"renderJSON": myst.RenderJSON,
 		"partial": func(key string, data any) error {
 			return executePartial(tmpl, w, key, data)
 		},

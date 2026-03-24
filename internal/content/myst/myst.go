@@ -30,3 +30,16 @@ func RenderHTML(node *Node) (template.HTML, error) {
 
 	return template.HTML(html), nil
 }
+
+// Render MyST AST to JSON.
+func RenderJSON(node *Node) (string, error) {
+	opts := atrus.JSONOpts{
+		Whitespace: atrus.JSONIndent2,
+	}
+	json, err := atrus.RenderJSON(&node.ASTNode, opts)
+	if err != nil {
+		return "", fmt.Errorf("libatrus render error: %w", err)
+	}
+
+	return json, nil
+}

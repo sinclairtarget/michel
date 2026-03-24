@@ -69,7 +69,7 @@ func (m Metadata) Slug() (string, error) {
 
 	lowered := strings.ToLower(m.Title)
 
-	punct := regexp.MustCompile(`[!?'"]+`)
+	punct := regexp.MustCompile(`[!?'":]+`)
 	unpunctuated := punct.ReplaceAllString(lowered, "")
 	hyphenated := strings.ReplaceAll(unpunctuated, " ", "-")
 	return hyphenated, nil
