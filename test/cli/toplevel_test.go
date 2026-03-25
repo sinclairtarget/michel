@@ -71,7 +71,8 @@ func TestConfig(t *testing.T) {
 	}
 
 	expected := `title: CLI Test
-description: This is a test site.`
+description: This is a test site.
+baseURL: ""`
 	actual := strings.TrimSpace(result.Stdout)
 	if actual != expected {
 		t.Errorf(

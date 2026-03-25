@@ -17,7 +17,7 @@ const Filename string = "michel.yaml"
 type Config struct {
 	Title       string
 	Description string
-	BaseURL     string
+	BaseURL     string `yaml:"baseURL"`
 }
 
 // Returns the default config.
