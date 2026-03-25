@@ -11,6 +11,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
+	"github.com/sinclairtarget/michel/internal/info"
 	"github.com/sinclairtarget/michel/internal/merrors"
 	"github.com/sinclairtarget/michel/internal/site"
 	"github.com/sinclairtarget/michel/internal/util"
@@ -38,6 +39,10 @@ func (p dotPage) ContentMaybe() (*content.Content, error) {
 	return p.corpus.GetMaybe(p.ContentKey)
 }
 
+type MichelInfo struct {
+	Version string
+}
+
 // Defines the data structures available for access via '.' in Michel
 // templates.
 //
@@ -48,6 +53,7 @@ type Dot struct {
 	Site    site.Site
 	Page    dotPage   // Currently rendering page
 	Now     time.Time // Should be when the build started
+	Michel  MichelInfo
 }
 
 func NewDot(
@@ -63,6 +69,7 @@ func NewDot(
 		Site:    site,
 		Page:    dotPage{PageMetadata: page, corpus: corpus},
 		Now:     now,
+		Michel:  MichelInfo{Version: info.Version},
 	}
 }
 

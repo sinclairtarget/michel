@@ -10,11 +10,9 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/config"
+	"github.com/sinclairtarget/michel/internal/info"
 	"github.com/sinclairtarget/michel/internal/server"
 )
-
-var Version string  // Semantic version
-var BuildTag string // Optional tag
 
 func main() {
 	mainFlagSet := flag.NewFlagSet("michel", flag.ExitOnError)
@@ -70,15 +68,15 @@ func main() {
 }
 
 func getVersionString() string {
-	if Version == "" {
+	if info.Version == "" {
 		return "unknown"
 	}
 
-	if BuildTag != "" {
-		return fmt.Sprintf("%s %s", Version, BuildTag)
+	if info.BuildTag != "" {
+		return fmt.Sprintf("%s %s", info.Version, info.BuildTag)
 	}
 
-	return Version
+	return info.Version
 }
 
 func configureLogging(level slog.Level) {

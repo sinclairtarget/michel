@@ -1,5 +1,6 @@
 version := `git describe --tags --always --dirty`
 pkg := "github.com/sinclairtarget/michel"
+info := "github.com/sinclairtarget/michel/internal/info"
 
 build: build-static
 
@@ -7,20 +8,27 @@ build: build-static
 # Requires built version of the library in libatrus-go
 build-static build_tag="dev":
     go build -o michel \
-        -ldflags '-X main.Version={{version}} -X main.BuildTag={{build_tag}}' \
+        -ldflags="\
+            -X '{{info}}.Version={{version}}' \
+            -X '{{info}}.BuildTag={{build_tag}}'" \
         -tags bundled_libatrus
 
 # Build michel, dynamically linking libatrus at a standard path
 build-system build_tag="dev":
     go build -o michel \
-        -ldflags '-X main.Version={{version}} -X main.BuildTag={{build_tag}}'
+        -ldflags="\
+            -X '{{info}}.Version={{version}}' \
+            -X '{{info}}.BuildTag={{build_tag}}'"
 
 # Build michel, dynamically linking libatrus at a non-standard path
 # Still requires libatrus pkg-config file in pkg-config search path
 # Uses -rpath argument to linker
 build-shared build_tag="dev":
     go build -o michel \
-        -ldflags "-X main.Version={{version}} -X main.BuildTag={{build_tag}} -r $(pkg-config --variable=libdir libatrus)"
+        -ldflags="\
+            -X '{{info}}.Version={{version}}' \
+            -X '{{info}}.BuildTag={{build_tag}}' \
+            -r $(pkg-config --variable=libdir libatrus)"
 
 # Run unit tests. Libatrus is statically linked
 [group("test")]
@@ -32,7 +40,7 @@ test-unit:
 test-cli: 
     mkdir -p test/bin
     go build -o test/bin/michel \
-        -ldflags '-X main.Version={{version}} -X main.BuildTag=test' \
+        -ldflags '-X {{info}}.Version={{version}} -X {{info}}.BuildTag=test' \
         -tags bundled_libatrus
     -go test -ldflags \
         '-X {{pkg}}/test/michel.ExecutablePath={{absolute_path("./test/bin/michel")}}' \
