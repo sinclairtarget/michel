@@ -193,13 +193,13 @@ func processPage(
 	// Set up root template and dot
 	rootTmpl := template.New("root")
 
-	dot := Dot{
-		Config:  scope.config,
-		Content: scope.corpus,
-		Site:    scope.site,
-		Page:    metadata,
-		Now:     scope.start,
-	}
+	dot := NewDot(
+		scope.config,
+		scope.corpus,
+		scope.site,
+		metadata,
+		scope.start,
+	)
 	rootTmpl.Funcs(dot.funcMap(rootTmpl, fout))
 
 	// Parse and add partials

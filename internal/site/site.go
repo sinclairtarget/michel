@@ -84,7 +84,7 @@ func (s Shim[T]) Get(key string) (T, error) {
 	return metadata, nil
 }
 
-func (s Shim[T]) TryGet(key string) (*T, error) {
+func (s Shim[T]) GetMaybe(key string) (*T, error) {
 	metadata, err := s.Get(key)
 	if err != nil {
 		var keyerr *merrors.KeyNotFoundError

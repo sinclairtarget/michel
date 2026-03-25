@@ -13,12 +13,12 @@ func PrintBuildError(err error) {
 		return
 	}
 
-	var keyerr *merrors.KeyNotFoundError
-	if errors.As(err, &keyerr) {
-		fmt.Fprintf(os.Stderr, "Error during build: %v\n", keyerr)
+	var suggestErr merrors.SuggestError
+	if errors.As(err, &suggestErr) {
+		fmt.Fprintf(os.Stderr, "Error during build: %v\n", suggestErr)
 		fmt.Fprintf(os.Stderr, "  %v\n", err)
 		fmt.Println()
-		fmt.Println(keyerr.Suggestion())
+		fmt.Println(suggestErr.Suggestion())
 	} else {
 		fmt.Fprintf(os.Stderr, "Error during build: %v\n", err)
 	}

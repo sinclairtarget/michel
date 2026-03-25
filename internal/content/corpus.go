@@ -86,7 +86,7 @@ func (c Corpus) Get(key string) (Content, error) {
 	return content, nil
 }
 
-func (c Corpus) TryGet(key string) (*Content, error) {
+func (c Corpus) GetMaybe(key string) (*Content, error) {
 	content, err := c.Get(key)
 	if err != nil {
 		var keyerr *merrors.KeyNotFoundError

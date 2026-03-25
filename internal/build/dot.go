@@ -11,9 +11,32 @@ import (
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
+	"github.com/sinclairtarget/michel/internal/merrors"
 	"github.com/sinclairtarget/michel/internal/site"
 	"github.com/sinclairtarget/michel/internal/util"
 )
+
+// Wraps a site.PageMetadata to allow getting the associated content via
+// Content().
+type dotPage struct {
+	site.PageMetadata
+	corpus content.Corpus
+}
+
+func (p dotPage) Content() (content.Content, error) {
+	if p.ContentKey == "" {
+		return content.Content{}, merrors.NoAssociatedContentError{
+			PageKey:      p.Key(),
+			PageFilepath: p.Filepath,
+		}
+	}
+
+	return p.corpus.Get(p.ContentKey)
+}
+
+func (p dotPage) ContentMaybe() (*content.Content, error) {
+	return p.corpus.GetMaybe(p.ContentKey)
+}
 
 // Defines the data structures available for access via '.' in Michel
 // templates.
@@ -23,8 +46,24 @@ type Dot struct {
 	Config  config.Config
 	Content content.Corpus
 	Site    site.Site
-	Page    site.PageMetadata // Currently rendering page
-	Now     time.Time         // Should be when the build started
+	Page    dotPage   // Currently rendering page
+	Now     time.Time // Should be when the build started
+}
+
+func NewDot(
+	config config.Config,
+	corpus content.Corpus,
+	site site.Site,
+	page site.PageMetadata,
+	now time.Time,
+) Dot {
+	return Dot{
+		Config:  config,
+		Content: corpus,
+		Site:    site,
+		Page:    dotPage{PageMetadata: page, corpus: corpus},
+		Now:     now,
+	}
 }
 
 // Defines the functions available in Michel templates.
