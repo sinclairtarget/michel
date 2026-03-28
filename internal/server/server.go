@@ -18,7 +18,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/build"
 )
 
-func Run(basePath string, port int, outdir string) error {
+func Run(bind string, port int, outdir string) error {
 	watcher := newWatcher(
 		build.ContentDir,
 		build.LayoutsDir,
@@ -46,10 +46,10 @@ func Run(basePath string, port int, outdir string) error {
 
 	fmt.Printf("Starting server on port %d...\n", port)
 
-	addr := fmt.Sprintf(":%d", port)
+	addr := fmt.Sprintf("%s:%d", bind, port)
 	return http.ListenAndServe(
 		addr,
-		logMiddleware(http.FileServer(http.Dir(basePath)).ServeHTTP),
+		logMiddleware(http.FileServer(http.Dir(outdir)).ServeHTTP),
 	)
 }
 

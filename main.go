@@ -92,7 +92,7 @@ loop:
 			fmt.Fprintf(
 				os.Stderr,
 				"Unrecognized subcommand: \"%s\"\n",
-				subcommand,
+				first,
 			)
 			mainFlagSet.Usage()
 			os.Exit(1)
@@ -156,6 +156,8 @@ func serveCmd() command {
 		build.DefaultOutputDir,
 		"Output directory for build",
 	)
+	bind := flagSet.String("bind", "127.0.0.1", "Bind address")
+	port := flagSet.Int("p", 8080, "Port for HTTP server")
 
 	description := "Run local HTTP server for site"
 
@@ -178,7 +180,7 @@ func serveCmd() command {
 			}
 
 			// Run server
-			err = server.Run("./public", 8080, *outdir)
+			err = server.Run(*bind, *port, *outdir)
 			fmt.Fprintf(os.Stderr, "Server exited: %v\n", err)
 		},
 	}
