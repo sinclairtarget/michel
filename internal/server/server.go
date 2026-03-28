@@ -18,7 +18,7 @@ import (
 	"github.com/sinclairtarget/michel/internal/build"
 )
 
-func Run(basePath string, port int) error {
+func Run(basePath string, port int, outdir string) error {
 	watcher := newWatcher(
 		build.ContentDir,
 		build.LayoutsDir,
@@ -32,7 +32,7 @@ func Run(basePath string, port int) error {
 	go func() {
 		for event := range watcher.events {
 			slog.Debug("got file modified event", "path", event.path)
-			rebuild()
+			rebuild(outdir)
 		}
 
 		slog.Debug("goroutine exiting; watch events channel closed")
@@ -53,9 +53,9 @@ func Run(basePath string, port int) error {
 	)
 }
 
-func rebuild() {
+func rebuild(outdir string) {
 	start := time.Now()
-	err := build.Build()
+	err := build.Build(outdir)
 	if err != nil {
 		build.PrintBuildError(err)
 	}

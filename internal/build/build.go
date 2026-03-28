@@ -40,8 +40,7 @@ const (
 	PartialsDir        = "partials"
 )
 
-// Output directory
-const TargetDir string = "public"
+const DefaultOutputDir string = "public"
 
 // Scope for a build.
 //
@@ -55,7 +54,7 @@ type scope struct {
 	start    time.Time
 }
 
-func Build() error {
+func Build(outdir string) error {
 	var (
 		scope scope
 		err   error
@@ -82,7 +81,7 @@ func Build() error {
 	}
 
 	slog.Debug("cleaning target directory")
-	err = clean(TargetDir)
+	err = clean(outdir)
 	if err != nil {
 		return fmt.Errorf("failed to clean target directory: %v", err)
 	}
@@ -107,7 +106,7 @@ func Build() error {
 
 	slog.Debug("processing pages")
 	for page := range scope.site.Pages().All() {
-		targetPath := mapPage(page, TargetDir)
+		targetPath := mapPage(page, outdir)
 		slog.Debug(
 			"processing page",
 			"key",
@@ -127,7 +126,7 @@ func Build() error {
 
 	slog.Debug("processing assets")
 	for asset := range scope.site.Assets().All() {
-		targetPath := mapAsset(asset, TargetDir)
+		targetPath := mapAsset(asset, outdir)
 		slog.Debug(
 			"processing asset",
 			"key",
