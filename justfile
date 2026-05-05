@@ -4,8 +4,9 @@ info := "github.com/sinclairtarget/michel/internal/info"
 
 build: build-static
 
-# Build michel, statically linking libatrus
 # Requires built version of the library in libatrus-go
+#
+# Build michel, statically linking libatrus
 build-static build_tag="dev":
     go build -o michel \
         -ldflags="\
@@ -20,9 +21,10 @@ build-system build_tag="dev":
             -X '{{info}}.Version={{version}}' \
             -X '{{info}}.BuildTag={{build_tag}}'"
 
-# Build michel, dynamically linking libatrus at a non-standard path
 # Still requires libatrus pkg-config file in pkg-config search path
 # Uses -rpath argument to linker
+#
+# Build michel, dynamically linking libatrus at a non-standard path
 build-shared build_tag="dev":
     go build -o michel \
         -ldflags="\
