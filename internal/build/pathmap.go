@@ -6,12 +6,10 @@ import (
 	"github.com/sinclairtarget/michel/internal/site"
 )
 
-func mapPage(page site.PageMetadata, targetDir string) string {
-	targetFilepath := page.Key() + ".html"
-	return filepath.Join(targetDir, targetFilepath)
+func mapPage(page site.PageMetadata, outDir string) string {
+	return filepath.Join(outDir, page.Target())
 }
 
-func mapAsset(asset site.AssetMetadata, targetDir string) string {
-	targetFilepath := asset.Key()
-	return filepath.Join(targetDir, targetFilepath)
+func mapAsset(asset site.AssetMetadata, outDir string) string {
+	return filepath.Join(outDir, asset.Target())
 }

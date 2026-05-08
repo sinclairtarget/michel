@@ -10,38 +10,32 @@ import (
 	"strings"
 )
 
-var allowedCompoundExtensions = [...]string{".html.tmpl", ".go.html"}
+var compoundExtensions = [...]string{".html.tmpl"}
 
-// Returns the filename in a path, removing all leading directories and the
-// extension.
+// Returns the path relative to given base directory with the file extension
+// stripped.
 //
 // Compound extensions commonly used for Go template files are supported.
-func BaseWithoutExt(path string) string {
+func RelpathWithoutExt(dir string, path string) string {
+	relative, err := filepath.Rel(dir, path)
+	if err != nil {
+		panic("path could not be made relative to directory")
+	}
+	dirPart := filepath.Dir(relative)
+	base := baseWithoutExt(path)
+	return filepath.Join(dirPart, base)
+}
+
+func baseWithoutExt(path string) string {
 	base := filepath.Base(path)
 
-	for _, ext := range allowedCompoundExtensions {
+	for _, ext := range compoundExtensions {
 		if strings.HasSuffix(base, ext) {
 			return strings.TrimSuffix(base, ext)
 		}
 	}
 
 	return strings.TrimSuffix(base, filepath.Ext(base))
-}
-
-// Returns a key for a file loaded from disk.
-//
-// These keys are used throughout Michel to identify content, templates, etc.
-//
-// The key is the path to the file, relative to the containing directory, with
-// no extension.
-func KeyFromPath(dir string, path string) string {
-	relative, err := filepath.Rel(dir, path)
-	if err != nil {
-		panic("path could not be made relative to directory")
-	}
-	dirPart := filepath.Dir(relative)
-	base := BaseWithoutExt(path)
-	return filepath.Join(dirPart, base)
 }
 
 // Returns an iterator over all files under the given directory (including

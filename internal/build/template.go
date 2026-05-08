@@ -136,7 +136,7 @@ func loadStencils(dir string) ([]stencil, error) {
 		}
 
 		stencil := stencil{
-			key:          util.KeyFromPath(dir, path),
+			key:          util.RelpathWithoutExt(dir, path),
 			path:         path,
 			templateText: string(b),
 		}

@@ -33,7 +33,7 @@ func RelURL(suffix string, baseURL string) string {
 
 // Returns an absolute URL incorporating the base URL.
 //
-// If no base URL is configured, returns an origin-relative URL.
+// If no base URL is configured, panics.
 //
 // e.g.
 // foo/bar  https://bim.com     -> https://bim.com/foo/bar

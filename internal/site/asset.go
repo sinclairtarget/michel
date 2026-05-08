@@ -10,11 +10,12 @@ import (
 //
 // Examples of assets: images, stylesheets, javascript.
 //
-// Unlike pages and content, the key for an asset includes the file extension.
-// This makes it possible to have assets named e.g. main.js and main.css.
+// Unlike pages and content, the key for an asset always includes the file
+// extension. This makes it possible to have assets named `main.js` and
+// `main.css`, for example, without collision.
 type AssetMetadata struct {
 	key      string
-	Filepath string
+	Filepath string // source filepath
 	relURL   string
 	absURL   string
 }
@@ -35,6 +36,9 @@ func (m AssetMetadata) AbsURL() string {
 
 	return m.absURL
 }
+
+// Output path for the asset.
+func (m AssetMetadata) Target() string { return m.key }
 
 func NewAsset(dir string, path string, baseURL string) AssetMetadata {
 	key, err := filepath.Rel(dir, path)
