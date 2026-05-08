@@ -107,7 +107,7 @@ func (c Corpus) All() iter.Seq[Entry] {
 	return maps.Values(c.entries)
 }
 
-func (c Corpus) ByDate() iter.Seq[Entry] {
+func (c Corpus) SortedByDate() iter.Seq[Entry] {
 	return c.sorted(func(a, b Entry) int {
 		if a.Date.Before(b.Date) {
 			return -1
@@ -119,7 +119,7 @@ func (c Corpus) ByDate() iter.Seq[Entry] {
 	})
 }
 
-func (c Corpus) ByTitle() iter.Seq[Entry] {
+func (c Corpus) SortedByTitle() iter.Seq[Entry] {
 	return c.sorted(func(a, b Entry) int {
 		if a.Title < b.Title {
 			return -1
