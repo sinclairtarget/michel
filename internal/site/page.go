@@ -10,6 +10,7 @@ import (
 )
 
 type frontmatter struct {
+	Key     string
 	Layouts []string // Keys naming the layouts that should be used
 }
 
@@ -85,6 +86,9 @@ func LoadPageMetadata(
 
 	// Load frontmatter fields
 	metadata.Layouts = result.Frontmatter.Layouts
+	if result.Frontmatter.Key != "" {
+		metadata.key = result.Frontmatter.Key
+	}
 
 	return metadata, nil
 }

@@ -15,6 +15,7 @@ import (
 
 // Frontmatter loaded from the beginning of a content file.
 type frontmatter struct {
+	Key         string
 	Title       string
 	Description string
 	Date        string
@@ -104,6 +105,9 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 	// Load frontmatter fields
 	metadata.Title = result.Frontmatter.Title
 	metadata.Description = result.Frontmatter.Description
+	if result.Frontmatter.Key != "" {
+		metadata.key = result.Frontmatter.Key
+	}
 
 	metadata.Date, err = result.Frontmatter.ParsedDate()
 	if err != nil {
