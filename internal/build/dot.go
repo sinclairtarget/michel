@@ -12,32 +12,9 @@ import (
 	"github.com/sinclairtarget/michel/internal/content"
 	"github.com/sinclairtarget/michel/internal/content/myst"
 	"github.com/sinclairtarget/michel/internal/info"
-	"github.com/sinclairtarget/michel/internal/merrors"
 	"github.com/sinclairtarget/michel/internal/site"
 	"github.com/sinclairtarget/michel/internal/util"
 )
-
-// Wraps a site.PageMetadata to allow getting the associated content via
-// Content().
-type dotPage struct {
-	site.PageMetadata
-	corpus content.Corpus
-}
-
-func (p dotPage) Content() (content.Content, error) {
-	if p.ContentKey == "" {
-		return content.Content{}, merrors.NoAssociatedContentError{
-			PageKey:      p.Key(),
-			PageFilepath: p.Filepath,
-		}
-	}
-
-	return p.corpus.Get(p.ContentKey)
-}
-
-func (p dotPage) ContentMaybe() (*content.Content, error) {
-	return p.corpus.TryGet(p.ContentKey)
-}
 
 type MichelInfo struct {
 	Version string
@@ -51,8 +28,8 @@ type Dot struct {
 	Config  config.Config
 	Content content.Corpus
 	Site    site.Site
-	Page    dotPage   // Currently rendering page
-	Now     time.Time // Should be when the build started
+	Page    site.PageMetadata // Currently rendering page
+	Now     time.Time         // Should be when the build started
 	Michel  MichelInfo
 }
 
@@ -67,7 +44,7 @@ func NewDot(
 		Config:  config,
 		Content: corpus,
 		Site:    site,
-		Page:    dotPage{PageMetadata: page, corpus: corpus},
+		Page:    page,
 		Now:     now,
 		Michel:  MichelInfo{Version: info.Version},
 	}

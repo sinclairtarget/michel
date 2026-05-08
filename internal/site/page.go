@@ -11,7 +11,6 @@ import (
 
 type frontmatter struct {
 	Layouts []string // Keys naming the layouts that should be used
-	Content string   // Key naming content associated with this page
 }
 
 // Metadata for a Michel page available on disk.
@@ -21,8 +20,7 @@ type PageMetadata struct {
 	relURL   string
 	absURL   string
 	// From frontmatter
-	Layouts    []string
-	ContentKey string
+	Layouts []string
 }
 
 func (m PageMetadata) Key() string { return m.key }
@@ -87,7 +85,6 @@ func LoadPageMetadata(
 
 	// Load frontmatter fields
 	metadata.Layouts = result.Frontmatter.Layouts
-	metadata.ContentKey = result.Frontmatter.Content
 
 	return metadata, nil
 }
