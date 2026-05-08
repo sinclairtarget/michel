@@ -36,7 +36,7 @@ func (p dotPage) Content() (content.Content, error) {
 }
 
 func (p dotPage) ContentMaybe() (*content.Content, error) {
-	return p.corpus.GetMaybe(p.ContentKey)
+	return p.corpus.TryGet(p.ContentKey)
 }
 
 type MichelInfo struct {
