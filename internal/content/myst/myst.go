@@ -10,10 +10,7 @@ import (
 
 // Parse MyST markdown into a MyST AST.
 func Parse(text string) (*Node, error) {
-	opts := atrus.ParseOpts{
-		ParseLevel: atrus.ParseLevelPost,
-	}
-	root, err := atrus.Parse(text, opts)
+	root, err := atrus.Parse(text, atrus.ParseLevelPost)
 	if err != nil {
 		return nil, fmt.Errorf("libatrus parse error: %w", err)
 	}
@@ -33,10 +30,7 @@ func RenderHTML(node *Node) (template.HTML, error) {
 
 // Render MyST AST to JSON.
 func RenderJSON(node *Node) (string, error) {
-	opts := atrus.JSONOpts{
-		Whitespace: atrus.JSONIndent2,
-	}
-	json, err := atrus.RenderJSON(&node.ASTNode, opts)
+	json, err := atrus.RenderJSON(&node.ASTNode, atrus.JSONIndent2)
 	if err != nil {
 		return "", fmt.Errorf("libatrus render error: %w", err)
 	}
