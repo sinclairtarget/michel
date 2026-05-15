@@ -103,7 +103,7 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 	return metadata, nil
 }
 
-// Loads and parses content.
+// Loads and parses content. Applies Michel-specific transforms.
 func LoadContent(m Metadata) (Content, error) {
 	slog.Debug("loading content from disk", "path", m.Filepath)
 
@@ -115,7 +115,7 @@ func LoadContent(m Metadata) (Content, error) {
 	}
 
 	// Parse MyST
-	content.Root, err = myst.Parse(result.Text)
+	root, err := myst.Parse(result.Text)
 	if err != nil {
 		return content, fmt.Errorf(
 			"failed to parse content file \"%s\": %w",
@@ -124,5 +124,16 @@ func LoadContent(m Metadata) (Content, error) {
 		)
 	}
 
+	// Transform MyST
+	root, err = myst.Transform(root)
+	if err != nil {
+		return content, fmt.Errorf(
+			"failed to transform MyST content loaded from \"%s\": %w",
+			m.Filepath,
+			err,
+		)
+	}
+
+	content.Root = root
 	return content, nil
 }
