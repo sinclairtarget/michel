@@ -8,6 +8,8 @@ import (
 // Returns an origin-relative URL incorporating any leading path part present
 // in the given base URL.
 //
+// Any trailing index.html is stripped.
+//
 // e.g.
 // foo/bar  https://bim.com     -> /foo/bar
 // /foo/bar https://bim.com     -> /foo/bar
@@ -24,16 +26,19 @@ func RelURL(suffix string, baseURL string) string {
 		u = u.JoinPath(url.PathEscape(elem))
 	}
 
-	if strings.HasPrefix(u.Path, "/") {
-		return u.Path
+	p := stripIndex(u.Path)
+	if strings.HasPrefix(p, "/") {
+		return p
 	} else {
-		return "/" + u.Path
+		return "/" + p
 	}
 }
 
 // Returns an absolute URL incorporating the base URL.
 //
 // If no base URL is configured, panics.
+//
+// Any trailing index.html is stripped.
 //
 // e.g.
 // foo/bar  https://bim.com     -> https://bim.com/foo/bar
@@ -56,10 +61,19 @@ func AbsURL(suffix string, baseURL string) string {
 	}
 
 	if u.IsAbs() {
-		return u.String()
+		return stripIndex(u.String())
 	} else if strings.HasPrefix(u.Path, "/") {
-		return u.Path
+		return stripIndex(u.Path)
 	} else {
-		return "/" + u.Path
+		return "/" + stripIndex(u.Path)
 	}
+}
+
+// TODO: Should this be configurable?
+func stripIndex(s string) string {
+	if strings.HasSuffix(s, "/index.html") {
+		return strings.TrimSuffix(s, "index.html")
+	}
+
+	return s
 }
