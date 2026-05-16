@@ -20,6 +20,12 @@ func Parse(text string) (*Node, error) {
 
 // Render MyST AST to HTML.
 func RenderHTML(node *Node) (template.HTML, error) {
+	// Perform pre-render custom MyST transforms
+	node, err := htmlRenderTransform(node)
+	if err != nil {
+		return "", fmt.Errorf("pre-render MyST transform failed: %w", err)
+	}
+
 	html, err := atrus.RenderHTML(node.ASTNode)
 	if err != nil {
 		return "", fmt.Errorf("libatrus render error: %w", err)

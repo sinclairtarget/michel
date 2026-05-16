@@ -124,16 +124,6 @@ func LoadContent(m Metadata) (Content, error) {
 		)
 	}
 
-	// Transform MyST
-	root, err = myst.Transform(root)
-	if err != nil {
-		return content, fmt.Errorf(
-			"failed to transform MyST content loaded from \"%s\": %w",
-			m.Filepath,
-			err,
-		)
-	}
-
 	content.Root = root
 	return content, nil
 }
