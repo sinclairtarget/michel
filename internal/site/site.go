@@ -31,7 +31,11 @@ func LoadSite(dir string, config config.Config) (Site, error) {
 
 			site.pageMetadata[m.Key()] = m
 		} else {
-			m := NewAsset(dir, path, config.BaseURL)
+			m, err := LoadAssetMetadata(dir, path, config.BaseURL)
+			if err != nil {
+				return site, err
+			}
+
 			site.assetMetadata[m.Key()] = m
 		}
 	}

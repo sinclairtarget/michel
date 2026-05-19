@@ -1,6 +1,7 @@
 package site
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -73,6 +74,14 @@ func LoadPageMetadata(
 		defaultKey string
 		err        error
 	)
+
+	if !util.IsContained(dir, path) {
+		return metadata, fmt.Errorf(
+			"page path \"%s\" not under \"%s\"",
+			path,
+			dir,
+		)
+	}
 
 	if !isPagePath(path) {
 		panic("called LoadPageMetadata() on non-page path")

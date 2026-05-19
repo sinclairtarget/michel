@@ -1,8 +1,11 @@
 package site
 
 import (
+	"fmt"
 	"log/slog"
 	"path/filepath"
+
+	"github.com/sinclairtarget/michel/internal/util"
 )
 
 // An asset is any file we want to be part of the built site that is not an
@@ -40,13 +43,27 @@ func (m AssetMetadata) AbsURL() string {
 // Output path for the asset.
 func (m AssetMetadata) Target() string { return m.key }
 
-func NewAsset(dir string, path string, baseURL string) AssetMetadata {
+func LoadAssetMetadata(
+	dir string,
+	path string,
+	baseURL string,
+) (AssetMetadata, error) {
+	var m AssetMetadata
+
+	if !util.IsContained(dir, path) {
+		return m, fmt.Errorf(
+			"asset path \"%s\" not under \"%s\"",
+			path,
+			dir,
+		)
+	}
+
 	key, err := filepath.Rel(dir, path)
 	if err != nil {
 		panic("asset path could not be made relative to site directory")
 	}
 
-	m := AssetMetadata{
+	m = AssetMetadata{
 		key:      key,
 		Filepath: path,
 		relURL:   RelURL(key, baseURL),
@@ -56,5 +73,5 @@ func NewAsset(dir string, path string, baseURL string) AssetMetadata {
 		m.absURL = AbsURL(key, baseURL)
 	}
 
-	return m
+	return m, nil
 }
