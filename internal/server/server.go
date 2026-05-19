@@ -55,7 +55,7 @@ func Run(bind string, port int, outdir string) error {
 
 func rebuild(outdir string) {
 	start := time.Now()
-	err := build.Build(outdir)
+	err := build.Build(outdir, true)
 	if err != nil {
 		build.PrintBuildError(err)
 	}

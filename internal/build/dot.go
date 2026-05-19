@@ -18,6 +18,7 @@ import (
 
 type MichelInfo struct {
 	Version string
+	IsLocal bool // Are we running `michel serve`?
 }
 
 // Defines the data structures available for access via '.' in Michel
@@ -39,6 +40,7 @@ func NewDot(
 	site site.Site,
 	page site.PageMetadata,
 	now time.Time,
+	isLocal bool,
 ) Dot {
 	return Dot{
 		Config:  config,
@@ -46,7 +48,7 @@ func NewDot(
 		Site:    site,
 		Page:    page,
 		Now:     now,
-		Michel:  MichelInfo{Version: info.Version},
+		Michel:  MichelInfo{Version: info.Version, IsLocal: isLocal},
 	}
 }
 

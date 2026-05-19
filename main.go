@@ -139,7 +139,7 @@ func buildCmd() command {
 		flagSet:     flagSet,
 		description: description,
 		run: func(args []string) {
-			err := build.Build(*outdir)
+			err := build.Build(*outdir, false)
 			if err != nil {
 				build.PrintBuildError(err)
 				os.Exit(1)
@@ -173,7 +173,7 @@ func serveCmd() command {
 		description: description,
 		run: func(args []string) {
 			// Build before running server
-			err := build.Build(*outdir)
+			err := build.Build(*outdir, true)
 			if err != nil {
 				build.PrintBuildError(err)
 				os.Exit(1)

@@ -52,9 +52,10 @@ type scope struct {
 	layouts  []Layout
 	partials []Partial
 	start    time.Time
+	isLocal  bool
 }
 
-func Build(outdir string) error {
+func Build(outdir string, isLocal bool) error {
 	var (
 		scope scope
 		err   error
@@ -62,6 +63,7 @@ func Build(outdir string) error {
 
 	slog.Debug("beginning build")
 	scope.start = time.Now()
+	scope.isLocal = isLocal
 
 	slog.Debug("loading config")
 	scope.config, err = config.Load()
@@ -198,6 +200,7 @@ func processPage(
 		scope.site,
 		metadata,
 		scope.start,
+		scope.isLocal,
 	)
 	rootTmpl.Funcs(dot.funcMap(rootTmpl, fout))
 
