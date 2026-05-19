@@ -73,6 +73,14 @@ func LoadMetadata(contentDir string, path string) (Metadata, error) {
 		err      error
 	)
 
+	if !util.IsContained(contentDir, path) {
+		return metadata, fmt.Errorf(
+			"content path \"%s\" not under \"%s\"",
+			path,
+			contentDir,
+		)
+	}
+
 	metadata.Filepath = path
 
 	result, err := load.ReadFile[frontmatter](

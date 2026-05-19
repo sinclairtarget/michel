@@ -8,6 +8,7 @@ import (
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/config"
+	"github.com/sinclairtarget/michel/internal/export"
 	"github.com/sinclairtarget/michel/internal/info"
 	"github.com/sinclairtarget/michel/internal/server"
 )
@@ -23,6 +24,7 @@ func main() {
 		"build":   buildCmd(),
 		"serve":   serveCmd(),
 		"config":  configCmd(),
+		"export":  exportCmd(),
 		"version": versionCmd(),
 	}
 
@@ -43,7 +45,13 @@ func main() {
 
 		fmt.Println()
 		fmt.Println("Subcommands:")
-		for _, name := range []string{"build", "serve", "config", "version"} {
+		for _, name := range []string{
+			"build",
+			"serve",
+			"config",
+			"export",
+			"version",
+		} {
 			cmd := subcommands[name]
 
 			if name == "build" {
@@ -208,6 +216,44 @@ func configCmd() command {
 
 			s := c.Dump()
 			fmt.Print(s)
+		},
+	}
+}
+
+func exportCmd() command {
+	flagSet := flag.NewFlagSet("michel export", flag.ExitOnError)
+
+	format := flagSet.String("f", "json", "Export format")
+
+	description := "Export content"
+
+	flagSet.Usage = func() {
+		fmt.Println("Usage: michel export [OPTIONS...] PATH")
+		fmt.Println(description)
+		fmt.Println()
+		flagSet.PrintDefaults()
+	}
+
+	return command{
+		flagSet:     flagSet,
+		description: description,
+		run: func(args []string) {
+			if len(args) < 1 {
+				flagSet.Usage()
+				fmt.Fprintln(os.Stderr, "Too few arguments.")
+				os.Exit(1)
+			}
+			if len(args) > 1 {
+				flagSet.Usage()
+				fmt.Fprintln(os.Stderr, "Too many arguments.")
+				os.Exit(1)
+			}
+
+			err := export.Export(args[0], *format, os.Stdout)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error exporting content: %v\n", err)
+				os.Exit(1)
+			}
 		},
 	}
 }

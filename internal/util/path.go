@@ -124,3 +124,13 @@ func IsDir(path string) (bool, error) {
 
 	return info.IsDir(), nil
 }
+
+// Returns true if the given filepath is with dir or a subdirectory of dir,
+// false otherwise.
+func IsContained(dir string, path string) bool {
+	rel, err := filepath.Rel(dir, path)
+	if err != nil {
+		panic("path could not be made relative to directory")
+	}
+	return !strings.HasPrefix(rel, "..")
+}

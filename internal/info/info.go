@@ -1,3 +1,4 @@
+// Package info contains build info about Michel.
 package info
 
 import (
