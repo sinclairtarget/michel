@@ -1,11 +1,16 @@
 # Michel
 ![brutalist](https://github.com/user-attachments/assets/80490b07-8eb6-4a6a-82d7-185c0964a1df)
 
-Michel is a MyST-flavored Hugo-lite with a simple, explicit content model.
+Michel is a static site generator that uses [MyST Markdown][myst homepage] and
+Go templates.
+
+## Why Michel?
+You can think of Michel as a "MyST-flavored Hugo-lite with a simple, explicit
+content model."
 
 What does that mean?
 
-* __MyST-Flavored__: Content in Michel is authored using [Markedly Structured
+* __MyST-flavored__: Content in Michel is authored using [Markedly Structured
   Text (MyST)][myst homepage]. MyST is an extension to Markdown that adds many
   features useful for technical and scientific writing. Functionality that
   would typically be part of the static site generator can, in Michel, be
