@@ -13,10 +13,13 @@ import (
 	"github.com/alecthomas/chroma/v2/styles"
 )
 
+// Returns an HTML `pre` element as a string with syntax highlighting for the
+// given text.
 func Highlight(
 	text string,
 	lang string,
 	showLineNumbers bool,
+	emphasizeLines []uint,
 ) (string, error) {
 	lexer := lexers.Get(lang)
 	if lexer == nil {
@@ -29,6 +32,7 @@ func Highlight(
 	formatter := html.New(
 		html.WithClasses(true),
 		html.WithLineNumbers(showLineNumbers),
+		html.HighlightLines(toRanges(emphasizeLines)),
 	)
 
 	it, err := lexer.Tokenise(nil, text)
@@ -43,4 +47,31 @@ func Highlight(
 	}
 
 	return builder.String(), nil
+}
+
+// Turns a list of integers into a list of ranges covering all the integers.
+//
+// The list of integers must be sorted.
+func toRanges(lineNums []uint) [][2]int {
+	if len(lineNums) == 0 {
+		return [][2]int{}
+	}
+
+	lineRanges := [][2]int{}
+	var openNum int
+	for i, lineNum := range lineNums {
+		if i == 0 {
+			openNum = int(lineNum)
+			continue
+		}
+
+		closeNum := int(lineNums[i-1])
+		if int(lineNum) > closeNum+1 {
+			lineRanges = append(lineRanges, [2]int{openNum, closeNum})
+		}
+	}
+
+	closeNum := int(lineNums[len(lineNums)-1])
+	lineRanges = append(lineRanges, [2]int{openNum, closeNum})
+	return lineRanges
 }

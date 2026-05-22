@@ -1,7 +1,9 @@
 package myst
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 
 	atrus "github.com/sinclairtarget/libatrus-go"
 
@@ -19,6 +21,15 @@ func htmlRenderTransform(node *Node) (*Node, error) {
 	return transformed, nil
 }
 
+const codeBlockTmpl = `
+<div class="code-block">
+{{ if .Filename }}
+<div class="code-block-filename">{{ .Filename }}</div>
+{{ end }}
+{{ .Content }}
+</div>
+`
+
 // A MyST transform to handle syntax highlighting and a few other code block
 // presentation niceties.
 //
@@ -32,21 +43,37 @@ func transformCode(node *Node) (*Node, error) {
 	if t == "code" {
 		code := node.Code()
 
+		// syntax highlight
 		highlightedCode, err := highlight.Highlight(
 			code.Value,
 			code.Lang,
 			code.ShowLineNumbers,
+			code.EmphasizeLines,
 		)
 		if err != nil {
 			return node, fmt.Errorf("failed to syntax highlight: %w", err)
 		}
 
-		html, err := atrus.CreateHTMLNode(highlightedCode)
+		// generate final html
+		t := template.Must(template.New("code").Parse(codeBlockTmpl))
+		data := struct {
+			Filename string
+			Content  template.HTML
+		}{
+			Filename: code.Filename,
+			Content:  template.HTML(highlightedCode),
+		}
+
+		var buf bytes.Buffer
+		t.Execute(&buf, data)
+		html := buf.String()
+
+		htmlNode, err := atrus.CreateHTMLNode(html)
 		if err != nil {
 			return node, err
 		}
 
-		return &Node{html}, nil
+		return &Node{htmlNode}, nil
 	}
 
 	for i, child := range node.Children() {
