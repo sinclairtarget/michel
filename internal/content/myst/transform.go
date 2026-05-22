@@ -22,12 +22,14 @@ func htmlRenderTransform(node *Node) (*Node, error) {
 }
 
 const codeBlockTmpl = `
-<div class="code-block-container">
-  <div class="code-block">
-  {{ if .Filename }}
-  <div class="code-block-filename">{{ .Filename }}</div>
-  {{ end }}
-  {{ .Content }}
+<div class="code-block-scroll-container">
+  <div class="code-block-container">
+    <div class="code-block">
+    {{ if .Filename }}
+    <div class="code-block-filename">{{ .Filename }}</div>
+    {{ end }}
+    {{ .Content }}
+    </div>
   </div>
 </div>
 `
