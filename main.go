@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/sinclairtarget/michel/internal/build"
 	"github.com/sinclairtarget/michel/internal/config"
 	"github.com/sinclairtarget/michel/internal/export"
+	"github.com/sinclairtarget/michel/internal/highlight"
 	"github.com/sinclairtarget/michel/internal/info"
 	"github.com/sinclairtarget/michel/internal/server"
 )
@@ -21,11 +23,12 @@ type command struct {
 
 func main() {
 	subcommands := map[string]command{
-		"build":   buildCmd(),
-		"serve":   serveCmd(),
-		"config":  configCmd(),
-		"export":  exportCmd(),
-		"version": versionCmd(),
+		"build":        buildCmd(),
+		"serve":        serveCmd(),
+		"config":       configCmd(),
+		"export":       exportCmd(),
+		"chromastyles": chromaCmd(),
+		"version":      versionCmd(),
 	}
 
 	// handle top-level flags
@@ -46,10 +49,12 @@ func main() {
 		fmt.Println()
 		fmt.Println("Subcommands:")
 		for _, name := range []string{
+			// Order these will appear in usage output
 			"build",
 			"serve",
 			"config",
 			"export",
+			"chromastyles",
 			"version",
 		} {
 			cmd := subcommands[name]
@@ -254,6 +259,45 @@ func exportCmd() command {
 				fmt.Fprintf(os.Stderr, "Error exporting content: %v\n", err)
 				os.Exit(1)
 			}
+		},
+	}
+}
+
+func chromaCmd() command {
+	flagSet := flag.NewFlagSet("michel chromastyles", flag.ExitOnError)
+
+	styleName := flagSet.String(
+		"name",
+		"monokai",
+		"Chroma style name",
+	)
+
+	description := "Generate CSS stylesheet for Chroma syntax highlighting"
+
+	flagSet.Usage = func() {
+		fmt.Println("Usage: michel chromastyles [OPTIONS...]")
+		fmt.Println(description)
+		fmt.Println()
+		flagSet.PrintDefaults()
+	}
+
+	return command{
+		flagSet:     flagSet,
+		description: description,
+		run: func(args []string) {
+			css, err := highlight.GenerateStylesheet(*styleName)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				os.Exit(1)
+			}
+
+			fmt.Printf(
+				"/* Generated using: michel %s */\n",
+				strings.Join(os.Args[1:], " "),
+			)
+			fmt.Printf("/* Michel version: %s */\n\n", info.GetVersionString())
+
+			fmt.Printf(css)
 		},
 	}
 }

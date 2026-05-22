@@ -5,6 +5,7 @@ package highlight
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 
 	chroma "github.com/alecthomas/chroma/v2"
@@ -40,13 +41,29 @@ func Highlight(
 		return "", fmt.Errorf("failed to tokenize: %w", err)
 	}
 
-	var builder strings.Builder
-	err = formatter.Format(&builder, style, it)
+	var sb strings.Builder
+	err = formatter.Format(&sb, style, it)
 	if err != nil {
 		return "", fmt.Errorf("failed to format: %w", err)
 	}
 
-	return builder.String(), nil
+	return sb.String(), nil
+}
+
+// Generates a Chroma stylesheet for the given style.
+func GenerateStylesheet(styleName string) (string, error) {
+	lowercaseStyleName := strings.ToLower(styleName)
+	if !slices.Contains(styles.Names(), lowercaseStyleName) {
+		return "", fmt.Errorf("unknown style name \"%s\"", styleName)
+	}
+
+	style := styles.Get(styleName)
+	formatter := html.New(html.WithCSSComments(true))
+
+	var sb strings.Builder
+	formatter.WriteCSS(&sb, style)
+
+	return sb.String(), nil
 }
 
 // Turns a list of integers into a list of ranges covering all the integers.
