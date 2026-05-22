@@ -58,9 +58,9 @@ func toRanges(lineNums []uint) [][2]int {
 	}
 
 	lineRanges := [][2]int{}
-	var openNum int
+	var openNum int = -1
 	for i, lineNum := range lineNums {
-		if i == 0 {
+		if openNum == -1 {
 			openNum = int(lineNum)
 			continue
 		}
@@ -68,10 +68,12 @@ func toRanges(lineNums []uint) [][2]int {
 		closeNum := int(lineNums[i-1])
 		if int(lineNum) > closeNum+1 {
 			lineRanges = append(lineRanges, [2]int{openNum, closeNum})
+			openNum = int(lineNum)
 		}
 	}
 
 	closeNum := int(lineNums[len(lineNums)-1])
 	lineRanges = append(lineRanges, [2]int{openNum, closeNum})
+
 	return lineRanges
 }
