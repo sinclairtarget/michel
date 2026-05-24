@@ -234,6 +234,12 @@ func exportCmd() command {
 		"Export format (\"json\" or \"typst\")",
 	)
 
+	addTitle := flagSet.Bool(
+		"title",
+		false,
+		"Add leading heading using title from metadata",
+	)
+
 	description := "Export content"
 
 	flagSet.Usage = func() {
@@ -258,7 +264,11 @@ func exportCmd() command {
 				os.Exit(1)
 			}
 
-			err := export.Export(args[0], *format, os.Stdout)
+			options := export.Options{
+				Format:   *format,
+				AddTitle: *addTitle,
+			}
+			err := export.Export(args[0], options, os.Stdout)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error exporting content: %v\n", err)
 				os.Exit(1)

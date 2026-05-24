@@ -95,3 +95,34 @@ func transformCode(node *Node) (*Node, error) {
 
 	return node, nil
 }
+
+// Given a title, adds the title as a new heading node with depth 1 at the very
+// beginning of the document.
+//
+// Is a no-op if the given title is an empty string.
+func TransformAddTitle(node *Node, title string) (*Node, error) {
+	if title == "" {
+		return node, nil
+	}
+
+	// If the AST has blocks, we should add it under the first block.
+	// Otherwise we can add it to the root.
+	parent := node.First("block")
+	if parent == nil {
+		parent = node
+	}
+
+	headingNode, err := atrus.CreateHeadingNode(1)
+	if err != nil {
+		return node, err
+	}
+
+	textNode, err := atrus.CreateTextNode(title)
+	if err != nil {
+		return node, err
+	}
+
+	headingNode.AppendChild(textNode)
+	parent.PrependChild(headingNode)
+	return node, nil
+}
