@@ -43,3 +43,13 @@ func RenderJSON(node *Node) (string, error) {
 
 	return json, nil
 }
+
+// Render MyST to Typst.
+func RenderTypst(node *Node) (string, error) {
+	s, err := atrus.RenderTypst(node.ASTNode)
+	if err != nil {
+		return "", fmt.Errorf("libatrus render error: %w", err)
+	}
+
+	return s, nil
+}

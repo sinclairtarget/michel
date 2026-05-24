@@ -228,7 +228,11 @@ func configCmd() command {
 func exportCmd() command {
 	flagSet := flag.NewFlagSet("michel export", flag.ExitOnError)
 
-	format := flagSet.String("f", "json", "Export format")
+	format := flagSet.String(
+		"f",
+		"json",
+		"Export format (\"json\" or \"typst\")",
+	)
 
 	description := "Export content"
 

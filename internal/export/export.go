@@ -29,6 +29,8 @@ func Export(filepath string, format string, w io.Writer) error {
 	switch format {
 	case "json":
 		err = exportJSON(c, w)
+	case "typst":
+		err = exportTypst(c, w)
 	default:
 		return fmt.Errorf("unsupported format \"%s\"", format)
 	}
@@ -52,6 +54,20 @@ func exportJSON(c content.Content, w io.Writer) error {
 
 	// Make sure we follow the JSON string with a newline
 	fmt.Fprintln(w)
+
+	return nil
+}
+
+func exportTypst(c content.Content, w io.Writer) error {
+	s, err := myst.RenderTypst(c.Root)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.WriteString(w, s)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
